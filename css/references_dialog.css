@@ -3,6 +3,7 @@
  */
 .views-row:hover {
   background-color: #a6a7a2;
+  cursor: pointer;
 }
 
 /**
