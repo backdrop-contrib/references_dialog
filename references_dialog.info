@@ -1,0 +1,6 @@
+name = References Dialog
+description = Enhances references fields by adding dialogs for adding and creating entities.
+package = Fields
+core = 7.x
+dependencies[] = field
+dependencies[] = references

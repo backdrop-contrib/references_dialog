@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * @file
+ * This the main module file.
+ */
+
+function references_dialog_field_widget_info() {
+  return array(
+    'references_dialog_dialog' => array(
+      'label'       => t('Autocomplete text field with dialog'),
+      'description' => t('Display the list of referenceable nodes as a textfield with autocomplete behaviour.'),
+      'field types' => array('node_reference'),
+      'settings'    => array(
+        'autocomplete_match' => 'contains',
+        'size' => 60,
+        'autocomplete_path' => 'node_reference/autocomplete',
+      ),
+    ),
+  );
+}
+
+function references_dialog_field_widget_settings_form($field, $instance) {
+  $widget = $instance['widget'];
+  $defaults = field_info_widget_settings($widget['type']);
+  $settings = array_merge($defaults, $widget['settings']);
+  // Let's mask ourselves as a node reference autocomplete widget and get the
+  // default settings.
+  $original_type = $instance['widget']['type'];
+  $instance['widget']['type'] = 'node_reference_autocomplete';
+  $form = node_reference_field_widget_settings_form($field, $instance);
+  $instance['widget']['type'] = $original_type;
+  
+  // Add our own additions.
+  $form['add_dialog'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add dialog'),
+    '#default_value' => $settings['add_dialog'],
+    '#description' => t('Display an option to add a new node of the reference type that will be inserted into the field.'),
+  );
+  $form['edit_dialog'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Edit dialog'),
+    '#default_value' => $settings['add_dialog'],
+    '#description' => t('Display an option to edit the referenced node.'),
+  );
+  /*
+  if (module_exists('views')) {
+    $form['search_dialog'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Search dialog'),
+      '#default_value' => $settings['search_dialog'],
+      '#description' => t('Display an option to search for content.'),
+    );
+    $form['search_dialog_view'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Search dialog view'),
+      '#default_value' => $settings['search_dialog'],
+      '#description' => t('Select which view should be used for the search dialog.'),
+    );
+  }
+  */
+  return $form;
+}
+
+function references_dialog_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  // Let's mask ourselves as a node reference autocomplete widget and get the
+  // default settings.
+  $original_type = $instance['widget']['type'];
+  $instance['widget']['type'] = 'node_reference_autocomplete';
+  drupal_add_library('dialog', 'dialog');
+  $element_form = node_reference_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+  $form['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
+  foreach ($field['settings']['referenceable_types'] as $type => $active) {
+    if ($active !== 0) {
+      if ($instance['widget']['settings']['add_dialog']) {
+      $node_type = node_type_load($type);
+        $element_form['add_dialog'] = array(
+          '#markup' => l(t('Create new @name', 
+            array('@name' => $node_type->name)), 'node/add/' . strtr($type, array('_' => '-')), 
+            array('attributes' => array('class' => array('references-dialog-activate')))),
+        );
+      }
+    }
+  }
+  if ($instance['widget']['settings']['edit_dialog'] && isset($element_form['nid']['#default_value'])) {
+    $element_form['edit_dialog'] = array(
+     '#markup' => l(t('Edit', array('@name' => $node_type->name)), 'node/add/' . strtr($type, array('_' => '-'))),
+    );
+  }
+  return $element_form;
+}
+
+function references_dialog_theme() {
+  return array( 
+    'references_dialog_page' => array(
+      'render element' => 'page',
+      'template' => 'references-dialog-page',
+    ),
+  );
+}
+
+function references_dialog_node_insert($node) {
+  if (references_dialog_in_dialog()) {
+    $_GET['destination'] = 'node/' . $node->nid . '?references-dialog-close=1&render=references-dialog';
+  }
+}
+
+function references_dialog_init() {
+  if (references_dialog_in_dialog()) {
+    module_invoke_all('suppress');
+  }
+  $item = menu_get_object();
+  $path = current_path();
+  if (isset($item->nid) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
+    drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
+    drupal_add_js(array(
+      'ReferencesDialog' => array(
+        'entity_id' => $item->nid,
+        'title' => $item->title
+      ),
+    ), 'setting');
+  }
+}
+
+function references_dialog_page_alter(&$page) {
+  if (references_dialog_in_dialog()) {
+    $page['#theme'] = 'references_dialog_page';
+  }
+}
+
+function references_dialog_in_dialog() {
+  return isset($_GET['render']) && $_GET['render'] == 'references-dialog';
+}
