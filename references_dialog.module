@@ -85,7 +85,7 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   }
   if ($instance['widget']['settings']['edit_dialog'] && isset($element_form['nid']['#default_value'])) {
     $element_form['edit_dialog'] = array(
-     '#markup' => l(t('Edit', array('@name' => $node_type->name)), 'node/add/' . strtr($type, array('_' => '-'))),
+     '#markup' => l(t('Edit', array('@name' => $node_type->name)), 'node/' . $element_form['nid']['#default_value'] . '/edit', array('attributes' => array('class' => array('references-dialog-activate')))),
     );
   }
   return $element_form;
@@ -101,6 +101,12 @@ function references_dialog_theme() {
 }
 
 function references_dialog_node_insert($node) {
+  if (references_dialog_in_dialog()) {
+    $_GET['destination'] = 'node/' . $node->nid . '?references-dialog-close=1&render=references-dialog';
+  }
+}
+
+function references_dialog_node_update($node) {
   if (references_dialog_in_dialog()) {
     $_GET['destination'] = 'node/' . $node->nid . '?references-dialog-close=1&render=references-dialog';
   }
