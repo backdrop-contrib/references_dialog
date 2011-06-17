@@ -7,7 +7,6 @@
 
 /**
  * Implements hook_field_widget_info().
- * @return type 
  */
 function references_dialog_field_widget_info() {
   return array(
@@ -24,6 +23,9 @@ function references_dialog_field_widget_info() {
   );
 }
 
+/**
+ * Implements hook_widget_settings_form().
+ */
 function references_dialog_field_widget_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $defaults = field_info_widget_settings($widget['type']);
@@ -66,19 +68,9 @@ function references_dialog_field_widget_settings_form($field, $instance) {
   return $form;
 }
 
-function _references_dialog_get_search_view_options() {
- $reference_views = array();
- $views = views_get_all_views();
- foreach ($views as $view_name => $view) {
-   foreach ($view->display as $display_name => $display) {
-     if ($display->display_plugin == 'references') {
-       $reference_views[$view_name . ':' . $display_name] = $view->name . ' : ' . $display->display_title;
-     }
-   }
- }
- return $reference_views;
-}
-
+/**
+ * Implements hook_field_widget_form().
+ */
 function references_dialog_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   // Let's mask ourselves as a node reference autocomplete widget and get the
   // default settings.
@@ -111,6 +103,9 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   return $element_form;
 }
 
+/**
+ * Implements hook_theme().
+ */
 function references_dialog_theme() {
   return array( 
     'references_dialog_page' => array(
@@ -141,6 +136,9 @@ function references_dialog_node_update($node) {
   }
 }
 
+/**
+ * Implements hook_init().
+ */
 function references_dialog_init() {
   if (references_dialog_in_dialog()) {
     module_invoke_all('suppress');
@@ -158,6 +156,10 @@ function references_dialog_init() {
   }
 }
 
+/**
+ * Menu callback for fetching a search view.
+ * @param $view a view to use.
+ */
 function references_dialog_search_view($view) {
   $args = func_get_args();
   array_shift($args);
@@ -165,6 +167,9 @@ function references_dialog_search_view($view) {
   return $view->execute_display($view->current_display, $args);
 }
 
+/**
+ * Implements hook_page_alter().
+ */
 function references_dialog_page_alter(&$page) {
   if (references_dialog_in_dialog()) {
     $page['#theme'] = 'references_dialog_page';
@@ -206,7 +211,8 @@ function references_dialog_views_plugins() {
 }
 
 /**
- * Retrieves the list of views with a 'references dialog' display, in a format suitable for a 'select' form element..
+ * Retrieves the list of views with a 'references dialog' display,
+ * in a format suitable for a 'select' form element.
  *
  * @param $entity_type
  *   The entity type.
@@ -232,20 +238,53 @@ function references_dialog_get_views_options($entity_type) {
   return $options;
 }
 
+/**
+ * Menu argument loader for a references dialog search view.
+ * @param string $search_view 
+ * A string containing the view name and the
+ * display name separated by ':'
+ * @return a loaded view with the right display set as the default display.
+ */
+function references_dialog_search_view_load($search_view) {
+  list($view, $display) = explode(':', $search_view);
+  $view = views_get_view($view);
+  if ($view && isset($view->display[$display])) {
+    // Set the current display here, that what we are going to use.
+    $view->set_display($display);    
+    return $view;
+  }
+  return FALSE;
+}
+
+/**
+ * Theme function for an add button.
+ */
 function theme_references_dialog_add_button() {
   return theme('image', array(
     'path' => drupal_get_path('module', 'references_dialog') . '/img/plus.png',
+    'alt' => t('Add new content that you want to refer to.'),
+    'title' => t('Add referencing content'),
   ));
 }
 
+/**
+ * Theme function for an edit button.
+ */
 function theme_references_dialog_edit_button() {
   return theme('image', array(
     'path' => drupal_get_path('module', 'references_dialog') . '/img/edit.png',
+    'alt' => t('Edit the current reference.'),
+    'title' => t('Edit referencing content'),
   ));  
 }
 
+/**
+ * Theme function for a search button.
+ */
 function theme_references_dialog_search_button() {
   return theme('image', array(
     'path' => drupal_get_path('module', 'references_dialog') . '/img/search.png',
+    'alt' => t('Search for references.'),
+    'title' => t('Search for content to reference'),
   ));  
 }
