@@ -31,7 +31,7 @@
         resizable: false,
         position: "top",
         title: $(this).html()
-      }).width(960).height(600);
+      }).width(700).height(600);
       this.dialog_open = true;
     }
   }

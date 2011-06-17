@@ -5,6 +5,32 @@
  * This the main module file.
  */
 
+function references_dialog_menu() {
+  $items = array();
+  $items['references/search/%references_dialog_search_view'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => 'references_dialog_search_view',
+    'page arguments' => array(2,3),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer views'),
+  );
+  return $items;
+}
+
+/**
+ * Load a view for references
+ */
+function references_dialog_search_view_load($search_view) {
+  list($view, $display) = explode(':', $search_view);
+  $view = views_get_view($view);
+  if ($view && isset($view->display[$display])) {
+    // Set the current display here, that what we are going to use.
+    $view->set_display($display);    
+    return $view;
+  }
+  return FALSE;
+}
+
 function references_dialog_field_widget_info() {
   return array(
     'references_dialog_dialog' => array(
@@ -44,7 +70,6 @@ function references_dialog_field_widget_settings_form($field, $instance) {
     '#default_value' => $settings['add_dialog'],
     '#description' => t('Display an option to edit the referenced node.'),
   );
-  /*
   if (module_exists('views')) {
     $form['search_dialog'] = array(
       '#type' => 'checkbox',
@@ -53,14 +78,27 @@ function references_dialog_field_widget_settings_form($field, $instance) {
       '#description' => t('Display an option to search for content.'),
     );
     $form['search_dialog_view'] = array(
-      '#type' => 'checkbox',
+      '#type' => 'select',
+      '#options' => references_dialog_get_views_options($instance['entity_type']),
       '#title' => t('Search dialog view'),
-      '#default_value' => $settings['search_dialog'],
+      '#default_value' => $settings['search_dialog_view'],
       '#description' => t('Select which view should be used for the search dialog.'),
     );
   }
-  */
   return $form;
+}
+
+function _references_dialog_get_search_view_options() {
+ $reference_views = array();
+ $views = views_get_all_views();
+ foreach ($views as $view_name => $view) {
+   foreach ($view->display as $display_name => $display) {
+     if ($display->display_plugin == 'references') {
+       $reference_views[$view_name . ':' . $display_name] = $view->name . ' : ' . $display->display_title;
+     }
+   }
+ }
+ return $reference_views;
 }
 
 function references_dialog_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
@@ -85,7 +123,12 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   }
   if ($instance['widget']['settings']['edit_dialog'] && isset($element_form['nid']['#default_value'])) {
     $element_form['edit_dialog'] = array(
-     '#markup' => l(t('Edit', array('@name' => $node_type->name)), 'node/' . $element_form['nid']['#default_value'] . '/edit', array('attributes' => array('class' => array('references-dialog-activate')))),
+     '#markup' => l(t('Edit'), 'node/' . $element_form['nid']['#default_value'] . '/edit', array('attributes' => array('class' => array('references-dialog-activate')))),
+    );
+  }
+  if ($instance['widget']['settings']['search_dialog']) {
+    $element_form['search_dialog_view'] = array(
+      '#markup' => l(t('Search'), 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), array('attributes' => array('class' => array('references-dialog-activate')))),
     );
   }
   return $element_form;
@@ -129,6 +172,14 @@ function references_dialog_init() {
   }
 }
 
+function references_dialog_search_view($view) {
+  $args = func_get_args();
+  array_shift($args);
+  // Load some helper javascript for this view.
+  
+  return $view->execute_display($view->current_display, $args);
+}
+
 function references_dialog_page_alter(&$page) {
   if (references_dialog_in_dialog()) {
     $page['#theme'] = 'references_dialog_page';
@@ -147,4 +198,51 @@ function references_dialog_views_api() {
     'api' => 3,
     'path' => drupal_get_path('module', 'reference_dialog') . '/views',
   );
+}
+
+/**
+ * Implements of hook_views_plugins().
+ */
+function references_dialog_views_plugins() {
+  return array(
+    'display' => array(
+      'references_dialog' => array(
+        'title' => t('Reference Dialog Search'),
+        'admin' => t('References'),
+        'help' => t('A view that can be used when referencing content.'),
+        'handler' => 'references_dialog_plugin_display',
+        'help topic' => 'references-dialog',
+        'references_dialog display' => TRUE,
+        'path' => drupal_get_path('module', 'references_dialog') . '/views',
+      ),
+    ),
+  );
+}
+
+/**
+ * Retrieves the list of views with a 'references dialog' display, in a format suitable for a 'select' form element..
+ *
+ * @param $entity_type
+ *   The entity type.
+ *
+ * @return
+ *   An array of eligible views displays.
+ */
+function references_dialog_get_views_options($entity_type) {
+  // Filter views that contain a 'references' display. This actually returns a
+  // list of displays (the same view appears several times).
+  $displays = views_get_applicable_views('references_dialog display');
+
+  // Filter views that list the entity type we want, and group the separate
+  // displays by view.
+  $entity_info = entity_get_info($entity_type);
+  $options = array();
+  foreach ($displays as $data) {
+    list($view, $display_id) = $data;
+    if ($view->base_table == $entity_info['base table']) {
+      $options[$view->name . ':' . $display_id] = $view->name .' - ' . $view->display[$display_id]->display_title;
+    }
+  }
+
+  return $options;
 }
