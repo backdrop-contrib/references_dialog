@@ -138,3 +138,13 @@ function references_dialog_page_alter(&$page) {
 function references_dialog_in_dialog() {
   return isset($_GET['render']) && $_GET['render'] == 'references-dialog';
 }
+
+/**
+ * Implements of hook_views_api().
+ */
+function references_dialog_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'reference_dialog') . '/views',
+  );
+}
