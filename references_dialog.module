@@ -5,18 +5,6 @@
  * This the main module file.
  */
 
-function references_dialog_menu() {
-  $items = array();
-  $items['references/search/%references_dialog_search_view'] = array(
-    'type' => MENU_CALLBACK,
-    'page callback' => 'references_dialog_search_view',
-    'page arguments' => array(2,3),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer views'),
-  );
-  return $items;
-}
-
 /**
  * Load a view for references
  */
@@ -175,8 +163,7 @@ function references_dialog_init() {
 function references_dialog_search_view($view) {
   $args = func_get_args();
   array_shift($args);
-  // Load some helper javascript for this view.
-  
+  // Load some helper javascript for this view.  
   return $view->execute_display($view->current_display, $args);
 }
 
@@ -212,6 +199,7 @@ function references_dialog_views_plugins() {
         'help' => t('A view that can be used when referencing content.'),
         'handler' => 'references_dialog_plugin_display',
         'help topic' => 'references-dialog',
+        'uses hook menu' => TRUE,
         'references_dialog display' => TRUE,
         'path' => drupal_get_path('module', 'references_dialog') . '/views',
       ),

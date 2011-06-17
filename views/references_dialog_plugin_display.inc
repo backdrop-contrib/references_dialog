@@ -28,6 +28,18 @@ class references_dialog_plugin_display extends references_plugin_display {
     return $options;
   }
   
+  function execute_hook_menu($callbacks) {
+    $items = array();
+    $items['references/search/%references_dialog_search_view'] = array(
+      'type' => MENU_CALLBACK,
+      'page callback' => 'references_dialog_search_view',
+      'page arguments' => array(2,3),
+      'access callback' => 'user_access',
+      'access arguments' => array('administer views'),
+    );
+    return $items;
+  }
+  
   /**
    * The default execute handler fully renders the view.
    *
