@@ -6,19 +6,9 @@
  */
 
 /**
- * Load a view for references
+ * Implements hook_field_widget_info().
+ * @return type 
  */
-function references_dialog_search_view_load($search_view) {
-  list($view, $display) = explode(':', $search_view);
-  $view = views_get_view($view);
-  if ($view && isset($view->display[$display])) {
-    // Set the current display here, that what we are going to use.
-    $view->set_display($display);    
-    return $view;
-  }
-  return FALSE;
-}
-
 function references_dialog_field_widget_info() {
   return array(
     'references_dialog_dialog' => array(
@@ -154,9 +144,9 @@ function references_dialog_node_update($node) {
 function references_dialog_init() {
   if (references_dialog_in_dialog()) {
     module_invoke_all('suppress');
+    drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references_dialog.css');
   }
   $item = menu_get_object();
-  $path = current_path();
   if (isset($item->nid) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
     drupal_add_js(array(

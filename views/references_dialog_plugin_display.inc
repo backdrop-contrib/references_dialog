@@ -81,7 +81,6 @@ class references_dialog_plugin_display extends references_plugin_display {
     foreach ($this->view->result as $result) {
       $js_result[] = array('entity_id' => $result->{$this->view->base_field}, 'title' => $result->node_title);
     }
-    drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references_dialog.css');
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/search-reference.js');
     drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
     return $output;

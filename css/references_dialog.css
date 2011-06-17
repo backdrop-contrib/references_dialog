@@ -1,3 +1,14 @@
+/**
+ * The hover color when using views to find references.
+ */
 .views-row:hover {
   background: #0066ff;
+}
+
+/**
+ * Avoiod overflowing in the jquery dialog.
+ */
+html {
+  overflow-x: hidden;
+  padding: 5px;
 }
