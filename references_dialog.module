@@ -102,21 +102,20 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
       if ($instance['widget']['settings']['add_dialog']) {
       $node_type = node_type_load($type);
         $element_form['add_dialog'] = array(
-          '#markup' => l(t('Create new @name', 
-            array('@name' => $node_type->name)), 'node/add/' . strtr($type, array('_' => '-')), 
-            array('attributes' => array('class' => array('references-dialog-activate')))),
+          '#markup' => l(theme('references_dialog_add_button'), 'node/add/' . strtr($type, array('_' => '-')), 
+            array('attributes' => array('class' => array('references-dialog-activate')), 'html' => TRUE)),
         );
       }
     }
   }
   if ($instance['widget']['settings']['edit_dialog'] && isset($element_form['nid']['#default_value'])) {
     $element_form['edit_dialog'] = array(
-     '#markup' => l(t('Edit'), 'node/' . $element_form['nid']['#default_value'] . '/edit', array('attributes' => array('class' => array('references-dialog-activate')))),
+     '#markup' => l(theme('references_dialog_edit_button'), 'node/' . $element_form['nid']['#default_value'] . '/edit', array('attributes' => array('class' => array('references-dialog-activate')), 'html' => TRUE)),
     );
   }
   if ($instance['widget']['settings']['search_dialog']) {
     $element_form['search_dialog_view'] = array(
-      '#markup' => l(t('Search'), 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), array('attributes' => array('class' => array('references-dialog-activate')))),
+      '#markup' => l(theme('references_dialog_search_button'), 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), array('attributes' => array('class' => array('references-dialog-activate')), 'html' => TRUE)),
     );
   }
   return $element_form;
@@ -127,6 +126,15 @@ function references_dialog_theme() {
     'references_dialog_page' => array(
       'render element' => 'page',
       'template' => 'references-dialog-page',
+    ),
+    'references_dialog_add_button' => array(
+      'variables' => array(),
+    ),
+    'references_dialog_edit_button' => array(
+      'variables' => array(),
+    ),
+    'references_dialog_search_button' => array(
+      'variables' => array(),
     ),
   );
 }
@@ -231,6 +239,23 @@ function references_dialog_get_views_options($entity_type) {
       $options[$view->name . ':' . $display_id] = $view->name .' - ' . $view->display[$display_id]->display_title;
     }
   }
-
   return $options;
+}
+
+function theme_references_dialog_add_button() {
+  return theme('image', array(
+    'path' => drupal_get_path('module', 'references_dialog') . '/img/plus.png',
+  ));
+}
+
+function theme_references_dialog_edit_button() {
+  return theme('image', array(
+    'path' => drupal_get_path('module', 'references_dialog') . '/img/edit.png',
+  ));  
+}
+
+function theme_references_dialog_search_button() {
+  return theme('image', array(
+    'path' => drupal_get_path('module', 'references_dialog') . '/img/search.png',
+  ));  
 }

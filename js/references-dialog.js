@@ -30,7 +30,8 @@
         modal: true,
         resizable: false,
         position: "top",
-        title: $(this).html()
+        title: $(this).html(),
+        close: function() { this.dialog_open = false; }
       }).width(700).height(600);
       this.dialog_open = true;
     }
