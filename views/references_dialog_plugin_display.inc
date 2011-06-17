@@ -41,6 +41,12 @@ class references_dialog_plugin_display extends references_plugin_display {
   }
   
   /**
+   * Override references_plugin_display, and
+   * allow for other style types.
+   */
+  function get_style_type() { return 'normal'; }
+  
+  /**
    * The default execute handler fully renders the view.
    *
    * For the simplest use:
