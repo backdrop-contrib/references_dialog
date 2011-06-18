@@ -27,7 +27,7 @@ function references_dialog_field_widget_info() {
     'references_dialog_dialog' => array(
       'label'       => t('Autocomplete text field with dialog'),
       'description' => t('Display the list of referenceable nodes as a textfield with autocomplete behaviour.'),
-      'field types' => array('node_reference', 'user_reference', 'taxonomy_term_reference'),
+      'field types' => array('node_reference', 'user_reference'),
       'settings'    => array(
         'autocomplete_match' => 'contains',
         'size' => 60,
