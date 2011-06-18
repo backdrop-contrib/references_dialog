@@ -27,11 +27,15 @@ function references_dialog_field_widget_info() {
     'references_dialog_dialog' => array(
       'label'       => t('Autocomplete text field with dialog'),
       'description' => t('Display the list of referenceable nodes as a textfield with autocomplete behaviour.'),
-      'field types' => array('node_reference'),
+      'field types' => array('node_reference', 'user_reference', 'taxonomy_term_reference'),
       'settings'    => array(
         'autocomplete_match' => 'contains',
         'size' => 60,
         'autocomplete_path' => 'node_reference/autocomplete',
+        'add_dialog' => 1,
+        'edit_dialog' => 1,
+        'search_dialog' => 0,
+        'seach_dialog_view' => '',
       ),
     ),
   );
@@ -44,12 +48,7 @@ function references_dialog_field_widget_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $defaults = field_info_widget_settings($widget['type']);
   $settings = array_merge($defaults, $widget['settings']);
-  // Let's mask ourselves as a node reference autocomplete widget and get the
-  // default settings.
-  $original_type = $instance['widget']['type'];
-  $instance['widget']['type'] = 'node_reference_autocomplete';
-  $form = node_reference_field_widget_settings_form($field, $instance);
-  $instance['widget']['type'] = $original_type;
+  $form = _references_dialog_get_original_widget_form($field, $instance);
   
   // Add our own additions.
   $form['add_dialog'] = array(
@@ -75,11 +74,30 @@ function references_dialog_field_widget_settings_form($field, $instance) {
       '#type' => 'select',
       '#options' => references_dialog_get_views_options($instance['entity_type']),
       '#title' => t('Search dialog view'),
-      '#default_value' => $settings['search_dialog_view'],
+      '#default_value' => !empty($settings['search_dialog_view']) ? $settings['search_dialog_view']: NULL,
       '#description' => t('Select which view should be used for the search dialog.'),
     );
   }
   return $form;
+}
+
+function _references_dialog_get_original_widget_form($field, $instance) {
+  // Let's mask ourselves as the original reference autocomplete widget and get the
+  // default settings.
+  $instance['widget']['type'] = _references_dialog_get_autocomplete_type($field['type']);
+  $form = node_reference_field_widget_settings_form($field, $instance);
+  return $form;
+}
+
+function _references_dialog_get_autocomplete_type($field_type) {
+  switch($field_type) {
+    case 'taxonomy_term_reference':
+      return 'taxonomy_autocomplete';
+    case 'node_reference':
+      return 'node_reference_autocomplete';
+    case 'user_reference':
+      return 'user_reference_autocomplete';
+  }  
 }
 
 /**
@@ -102,15 +120,18 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   $form['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
   $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
   $dialog_links = array();
-  foreach ($field['settings']['referenceable_types'] as $type => $active) {
-    if ($active !== 0) {
-      if ($instance['widget']['settings']['add_dialog']) {
-        $node_type = node_type_load($type);
-        $dialog_links[] = array(
-          'title' => t('Create @type', array('@type' => $node_type->name)),
-          'href' => 'node/add/' . strtr($type, array('_' => '-')),
-        ) + $link_options;
-        $dialog_links['attributes']['class'][] = 'add-dialog';
+  // References provides the option to select which types are referenceable.
+  if (isset($field['settings']['referenceable_types']))  {
+    foreach ($field['settings']['referenceable_types'] as $type => $active) {
+      if ($active !== 0) {
+        if ($instance['widget']['settings']['add_dialog']) {
+          $node_type = node_type_load($type);
+          $dialog_links[] = array(
+            'title' => t('Create @type', array('@type' => $node_type->name)),
+            'href' => 'node/add/' . strtr($type, array('_' => '-')),
+          ) + $link_options;
+          $dialog_links['attributes']['class'][] = 'add-dialog';
+        }
       }
     }
   }
@@ -319,5 +340,4 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
  */
 function theme_references_dialog_links($links) {
   return theme('links', array('links' => $links));
-  
 }
