@@ -69,6 +69,13 @@ function references_dialog_field_widget_settings_form($field, $instance) {
 }
 
 /**
+ * Menu access checker for references_dialog
+ */
+function references_dialog_access($view) {
+  return $view->access(array($view->current_display));
+}
+
+/**
  * Implements hook_field_widget_form().
  */
 function references_dialog_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
