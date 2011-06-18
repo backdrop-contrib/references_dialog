@@ -1,0 +1,17 @@
+/**
+ * The hover color when using views to find references.
+ */
+.views-row:hover,
+table.views-table tbody tr:hover,
+table.views-table tbody tr:hover {
+  background-color: #a6a7a2;
+  cursor: pointer;
+}
+
+/**
+ * Avoiod overflowing in the jquery dialog.
+ */
+html {
+  overflow-x: hidden;
+  padding: 5px;
+}
