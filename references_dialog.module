@@ -97,7 +97,7 @@ function _references_dialog_get_autocomplete_type($field_type) {
       return 'node_reference_autocomplete';
     case 'user_reference':
       return 'user_reference_autocomplete';
-  }  
+  }
 }
 
 /**
