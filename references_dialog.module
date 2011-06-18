@@ -5,6 +5,20 @@
  * This the main module file.
  */
 
+function references_menu() {
+  $items = array();
+  // This redirect callback is used when adding and editing content in
+  // the overlay. When content is created or edited, we are directed here,
+  // so we can act properly on entities.
+  $items['references-dialog/redirect/%/%'] = array(
+    'page callback' => 'references_dialog_redirect_page',
+    'page arguments' => array(2,3),
+    'access callback' => 'references_dialog_redirect_access',
+    'access arguments' => array(2,3),
+  );
+  return $items;
+}
+
 /**
  * Implements hook_field_widget_info().
  */
@@ -96,6 +110,7 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
           'title' => t('Create @type', array('@type' => $node_type->name)),
           'href' => 'node/add/' . strtr($type, array('_' => '-')),
         ) + $link_options;
+        $dialog_links['attributes']['class'][] = 'add-dialog';
       }
     }
   }
@@ -104,12 +119,14 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
       'title' => t('Edit'), 
       'href' => 'node/' . $element_form['nid']['#default_value'] . '/edit'
     ) + $link_options;
+    $dialog_links['attributes']['class'][] = 'edit-dialog';
   }
   if ($instance['widget']['settings']['search_dialog']) {
     $dialog_links[] = array(
       'title' => t('Search'),
       'href' => 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), 
     ) + $link_options;
+    $dialog_links['attributes']['class'][] = 'search-dialog';
   }
   if (count($dialog_links)) {
     $element_form['dialog_links'] = array(
@@ -135,16 +152,31 @@ function references_dialog_theme() {
   );
 }
 
-function references_dialog_node_insert($node) {
+function references_dialog_entity_insert($entity, $entity_type) {
   if (references_dialog_in_dialog()) {
-    $_GET['destination'] = 'node/' . $node->nid . '?references-dialog-close=1&render=references-dialog';
+    references_dialog_close_on_redirect($entity, $entity_type);
   }
 }
 
-function references_dialog_node_update($node) {
+function references_dialog_entity_update($entity, $entity_type) {
   if (references_dialog_in_dialog()) {
-    $_GET['destination'] = 'node/' . $node->nid . '?references-dialog-close=1&render=references-dialog';
+    references_dialog_close_on_redirect($entity, $entity_type);
   }
+}
+
+/**
+ * Sets our destination parameter so that the dialog will close itself after
+ * redirect is completed.
+ */
+function references_dialog_close_on_redirect($entity, $entity_type) {
+  $entity_info = entity_get_info($entity_type);
+  // We use $_GET['destination'] since that overrides anything that happens
+  // in the form. It is a hack, but it is very effective, since we don't have 
+  // to be worried about getting overrun by other form submit handlers.
+  $_GET['destination'] = 'references-dialog/redirect/' . 
+  $entity->{$entity_info['entity keys']['id']} . '/' . 
+  $entity_type .
+  '?references-dialog-close=1&render=references-dialog';
 }
 
 /**
@@ -154,16 +186,6 @@ function references_dialog_init() {
   if (references_dialog_in_dialog()) {
     module_invoke_all('suppress');
     drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
-  }
-  $item = menu_get_object();
-  if (isset($item->nid) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
-    drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
-    drupal_add_js(array(
-      'ReferencesDialog' => array(
-        'entity_id' => $item->nid,
-        'title' => $item->title
-      ),
-    ), 'setting');
   }
 }
 
@@ -265,6 +287,30 @@ function references_dialog_search_view_load($search_view) {
     return $view;
   }
   return FALSE;
+}
+
+function references_dialog_redirect_access() {
+  // @todo It is not really a security issue, but we should probably check
+  // that you can create the content you just created (silly), to access
+  // this page.
+  return TRUE;
+}
+
+function references_dialog_redirect_page($entity_id, $entity_type) {
+  $entity = reset(entity_load($entity_type, array($entity_id)));
+  $entity_info = entity_get_info($entity_type);
+  $entity_id = $entity->{$entity_info['entity keys']['id']};
+  $entity_title = $entity->{$entity_info['entity keys']['label']};
+  if (isset($entity_id) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
+    drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
+    drupal_add_js(array(
+      'ReferencesDialog' => array(
+        'entity_id' => $entity_id,
+        'title' => $entity_title,
+      ),
+    ), 'setting');
+  }
+  return '';
 }
 
 /**

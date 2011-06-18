@@ -4,6 +4,8 @@
       // Attach ourselves to all references-dialog-activate classes.
       $('a.references-dialog-activate').click(function() {
         Drupal.ReferencesDialog.open($(this).attr('href'), $(this).find('img').attr('title'));
+        // @todo fix this, and replace with a more stable solution. This will
+        // break if the DOM tree is too different.
         var reference_element = $(this).parent().parent().prev().find('input');
         Drupal.ReferencesDialog.entityIdReceived = function(entity_id, title) {
           reference_element.val(title + ' [nid:' + entity_id + ']');
@@ -21,6 +23,10 @@
     open_dialog: null
   }
   
+  /**
+   * If this property is set to be a function, it
+   * will be called when an entity is recieved from an overlay.
+   */
   Drupal.ReferencesDialog.entityIdReceived = null;
 
   /**
@@ -54,6 +60,10 @@
     }
   }
   
+  /**
+   * Set dimensions of the dialog dependning on the current winow size
+   * and scroll position.
+   */
   Drupal.ReferencesDialog.setDimensions = function() {
     if (typeof Drupal.ReferencesDialog == "object") {
       var window_width = $(window).width() / 100*75;
