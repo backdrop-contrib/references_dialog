@@ -1,21 +1,26 @@
 (function ($) {
   Drupal.behaviors.referencesDialog = {
     attach: function (context, settings) {
-      $('.views-row, .views-view-grid td').click(function() {
-        var classes = $(this).attr('class');
-        // Find out the row number if this is a grid.
-        var row = null;
-        if ($('#references-dialog-page > .views-view-grid').size() > 0) {
-          var col = parseInt(/col-([0-9]+)/.exec(classes)[1]);
-          row =  parseInt(/row-([0-9]+)/.exec($(this).parent().attr('class'))[1]) * col - 1;
-        }
-        else {
-          row = parseInt(/views-row-([0-9]+)/.exec(classes)[1] - 1);
-        }
-        if (typeof row != "null") {
-          var entity = settings.ReferencesDialog.entities[row];
+      // Check what type of display we are dealing with
+      var selector = null;
+      if ($('table.views-table').size() > 0) {
+        selector = $('table.views-table tbody tr');
+      }
+      else if ($('table.views-view-grid').size() > 0) {
+        selector = $('table.views-view-grid td');
+      }
+      else if ($('.views-row').size() > 0) {
+        selector = $('.views-row');
+      }
+      else {
+        return;
+      }
+      selector.each(function(index) {
+        $(this).click(function() {
+          var entity = settings.ReferencesDialog.entities[index];
           parent.Drupal.ReferencesDialog.close(entity.entity_id, entity.title);
-        }
+          return false;
+        });
       });
     }
   }
