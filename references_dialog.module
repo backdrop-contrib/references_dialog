@@ -16,6 +16,13 @@ function references_menu() {
     'access callback' => 'references_dialog_redirect_access',
     'access arguments' => array(2,3),
   );
+  $items['references-dialog/search/%/%/%'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => 'references_dialog_search_view',
+    'page arguments' => array(2, 3, 4),
+    'access callback' => 'references_dialog_search_access',
+    'access arguments' => array(2, 3, 4),
+  );
   return $items;
 }
 
@@ -103,8 +110,8 @@ function _references_dialog_get_autocomplete_type($field_type) {
 /**
  * Menu access checker for references_dialog
  */
-function references_dialog_access($view) {
-  return $view->access(array($view->current_display));
+function references_dialog_search_access($entity_type, $field_name, $bundle_name) {
+  return TRUE;
 }
 
 /**
@@ -145,7 +152,9 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   if ($instance['widget']['settings']['search_dialog']) {
     $dialog_links[] = array(
       'title' => t('Search'),
-      'href' => 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), 
+      'href' => 'references-dialog/search/' . $instance['entity_type'] . '/' .
+        $instance['field_name'] . '/' .
+        $instance['bundle'],
     ) + $link_options;
     $dialog_links['attributes']['class'][] = 'search-dialog';
   }
@@ -214,11 +223,33 @@ function references_dialog_init() {
  * Menu callback for fetching a search view.
  * @param $view a view to use.
  */
-function references_dialog_search_view($view) {
+function references_dialog_search_view($entity_type, $field_name, $bundle_name) {
   $args = func_get_args();
-  array_shift($args);
+  $args = array_splice($args, 2);
+  $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+  $field_info = field_info_field($field_name);
+  if ($instance && $instance['widget']['settings']['search_dialog']) {
+    list($view_name, $display) = explode(':', $instance['widget']['settings']['search_dialog_view']);
+    $view = views_get_view($view_name);
+    // Check for referencable types and pass them as arguments if they exist.
+    if (isset($field_info['settings']['referenceable_types'])) {
+      $types = array();
+      foreach ($field_info['settings']['referenceable_types'] as $type => $active) {
+        if ($type == $active) {
+          $types[] = $type;
+        }
+        if (count($types)) {
+          array_unshift($args, implode('+', $types));
+        }
+      }
+    }
+    return $view->execute_display($display, $args);  
+  }
+  else {
+    return drupal_not_found();
+  }
   // Load some helper javascript for this view.  
-  return $view->execute_display($view->current_display, $args);
+  
 }
 
 /**
@@ -256,7 +287,6 @@ function references_dialog_views_plugins() {
         'help' => t('A view that can be used when referencing content.'),
         'handler' => 'references_dialog_plugin_display',
         'help topic' => 'references-dialog',
-        'uses hook menu' => TRUE,
         'references_dialog display' => TRUE,
         'path' => drupal_get_path('module', 'references_dialog') . '/views',
       ),
@@ -290,24 +320,6 @@ function references_dialog_get_views_options($entity_type) {
     }
   }
   return $options;
-}
-
-/**
- * Menu argument loader for a references dialog search view.
- * @param string $search_view 
- * A string containing the view name and the
- * display name separated by ':'
- * @return a loaded view with the right display set as the default display.
- */
-function references_dialog_search_view_load($search_view) {
-  list($view, $display) = explode(':', $search_view);
-  $view = views_get_view($view);
-  if ($view && isset($view->display[$display])) {
-    // Set the current display here, that what we are going to use.
-    $view->set_display($display);    
-    return $view;
-  }
-  return FALSE;
 }
 
 function references_dialog_redirect_access() {

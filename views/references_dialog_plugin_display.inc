@@ -27,26 +27,13 @@ class references_dialog_plugin_display extends references_plugin_display {
 
     return $options;
   }
-  
-  function execute_hook_menu($callbacks) {
-    $items = array();
-    $items['references/search/%references_dialog_search_view'] = array(
-      'type' => MENU_CALLBACK,
-      'page callback' => 'references_dialog_search_view',
-      'page arguments' => array(2),
-      'access callback' => 'references_dialog_access',
-      'access arguments' => array(2),
-      'load arguments' => array(),
-    );
-    return $items;
-  }
-  
+
   /**
    * Override references_plugin_display, and
    * allow for other style types.
    */
   function get_style_type() { return 'normal'; }
-  
+
   /**
    * The default execute handler fully renders the view.
    *
