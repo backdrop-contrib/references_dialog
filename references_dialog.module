@@ -125,6 +125,7 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   drupal_add_library('dialog', 'dialog');
   $element_form = node_reference_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
   $form['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
+  $form['#attached']['css'] = array(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css');
   $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
   $dialog_links = array();
   // References provides the option to select which types are referenceable.
@@ -133,30 +134,33 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
       if ($active !== 0) {
         if ($instance['widget']['settings']['add_dialog']) {
           $node_type = node_type_load($type);
-          $dialog_links[] = array(
+          $add_link = array(
             'title' => t('Create @type', array('@type' => $node_type->name)),
             'href' => 'node/add/' . strtr($type, array('_' => '-')),
           ) + $link_options;
-          $dialog_links['attributes']['class'][] = 'add-dialog';
+          $add_link['attributes']['class'][] = 'add-dialog';
+          $dialog_links[] = $add_link;
         }
       }
     }
   }
   if ($instance['widget']['settings']['edit_dialog'] && isset($element_form['nid']['#default_value'])) {
-    $dialog_links[] = array(
+    $edit_link = array(
       'title' => t('Edit'), 
       'href' => 'node/' . $element_form['nid']['#default_value'] . '/edit'
     ) + $link_options;
-    $dialog_links['attributes']['class'][] = 'edit-dialog';
+    $edit_link['attributes']['class'][] = 'edit-dialog';
+    $dialog_links[] = $edit_link;
   }
   if ($instance['widget']['settings']['search_dialog']) {
-    $dialog_links[] = array(
+    $search_link = array(
       'title' => t('Search'),
       'href' => 'references-dialog/search/' . $instance['entity_type'] . '/' .
         $instance['field_name'] . '/' .
         $instance['bundle'],
     ) + $link_options;
-    $dialog_links['attributes']['class'][] = 'search-dialog';
+    $search_link['attributes']['class'][] = 'search-dialog';
+    $dialog_links[] = $search_link;
   }
   if (count($dialog_links)) {
     $element_form['dialog_links'] = array(
@@ -351,5 +355,5 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
  * the references dialog.
  */
 function theme_references_dialog_links($links) {
-  return theme('links', array('links' => $links));
+  return theme('links', array('links' => $links, 'attributes' => array('class' => 'references-dialog-links')));
 }
