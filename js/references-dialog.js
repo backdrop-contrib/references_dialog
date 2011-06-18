@@ -4,7 +4,7 @@
       // Attach ourselves to all references-dialog-activate classes.
       $('a.references-dialog-activate').click(function() {
         Drupal.ReferencesDialog.open($(this).attr('href'), $(this).find('img').attr('title'));
-        var reference_element = $(this).parent().find('input');
+        var reference_element = $(this).parent().parent().prev().find('input');
         Drupal.ReferencesDialog.entityIdReceived = function(entity_id, title) {
           reference_element.val(title + ' [nid:' + entity_id + ']');
         }

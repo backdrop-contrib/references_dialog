@@ -86,25 +86,35 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
   drupal_add_library('dialog', 'dialog');
   $element_form = node_reference_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
   $form['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
+  $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
+  $dialog_links = array();
   foreach ($field['settings']['referenceable_types'] as $type => $active) {
     if ($active !== 0) {
       if ($instance['widget']['settings']['add_dialog']) {
-      $node_type = node_type_load($type);
-        $element_form['add_dialog'] = array(
-          '#markup' => l(theme('references_dialog_add_button'), 'node/add/' . strtr($type, array('_' => '-')), 
-            array('attributes' => array('class' => array('references-dialog-activate')), 'html' => TRUE)),
-        );
+        $node_type = node_type_load($type);
+        $dialog_links[] = array(
+          'title' => t('Create @type', array('@type' => $node_type->name)),
+          'href' => 'node/add/' . strtr($type, array('_' => '-')),
+        ) + $link_options;
       }
     }
   }
   if ($instance['widget']['settings']['edit_dialog'] && isset($element_form['nid']['#default_value'])) {
-    $element_form['edit_dialog'] = array(
-     '#markup' => l(theme('references_dialog_edit_button'), 'node/' . $element_form['nid']['#default_value'] . '/edit', array('attributes' => array('class' => array('references-dialog-activate')), 'html' => TRUE)),
-    );
+    $dialog_links[] = array(
+      'title' => t('Edit'), 
+      'href' => 'node/' . $element_form['nid']['#default_value'] . '/edit'
+    ) + $link_options;
   }
   if ($instance['widget']['settings']['search_dialog']) {
-    $element_form['search_dialog_view'] = array(
-      '#markup' => l(theme('references_dialog_search_button'), 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), array('attributes' => array('class' => array('references-dialog-activate')), 'html' => TRUE)),
+    $dialog_links[] = array(
+      'title' => t('Search'),
+      'href' => 'references/search/' . urlencode($instance['widget']['settings']['search_dialog_view']), 
+    ) + $link_options;
+  }
+  if (count($dialog_links)) {
+    $element_form['dialog_links'] = array(
+      '#type' => 'markup',
+      '#markup' => theme('references_dialog_links', $dialog_links),
     );
   }
   return $element_form;
@@ -119,14 +129,8 @@ function references_dialog_theme() {
       'render element' => 'page',
       'template' => 'references-dialog-page',
     ),
-    'references_dialog_add_button' => array(
-      'variables' => array(),
-    ),
-    'references_dialog_edit_button' => array(
-      'variables' => array(),
-    ),
-    'references_dialog_search_button' => array(
-      'variables' => array(),
+    'references_dialog_links' => array(
+      'variables' => array('links' => null),
     ),
   );
 }
@@ -149,7 +153,7 @@ function references_dialog_node_update($node) {
 function references_dialog_init() {
   if (references_dialog_in_dialog()) {
     module_invoke_all('suppress');
-    drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references_dialog.css');
+    drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
   }
   $item = menu_get_object();
   if (isset($item->nid) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
@@ -264,34 +268,10 @@ function references_dialog_search_view_load($search_view) {
 }
 
 /**
- * Theme function for an add button.
+ * Theme function for theming the links for opening
+ * the references dialog.
  */
-function theme_references_dialog_add_button() {
-  return theme('image', array(
-    'path' => drupal_get_path('module', 'references_dialog') . '/img/plus.png',
-    'alt' => t('Add new content that you want to refer to.'),
-    'title' => t('Add referencing content'),
-  ));
-}
-
-/**
- * Theme function for an edit button.
- */
-function theme_references_dialog_edit_button() {
-  return theme('image', array(
-    'path' => drupal_get_path('module', 'references_dialog') . '/img/edit.png',
-    'alt' => t('Edit the current reference.'),
-    'title' => t('Edit referencing content'),
-  ));  
-}
-
-/**
- * Theme function for a search button.
- */
-function theme_references_dialog_search_button() {
-  return theme('image', array(
-    'path' => drupal_get_path('module', 'references_dialog') . '/img/search.png',
-    'alt' => t('Search for references.'),
-    'title' => t('Search for content to reference'),
-  ));  
+function theme_references_dialog_links($links) {
+  return theme('links', array('links' => $links));
+  
 }
