@@ -18,6 +18,10 @@ ul.references-dialog-links li a.add-dialog {
   background: url('../img/plus.png') left no-repeat;
 }
 
+ul.references-dialog-links li a.edit-dialog {
+  background: url('../img/edit.png') left no-repeat;
+}
+
 ul.references-dialog-links li a.search-dialog {
   background: url('../img/search.png') left no-repeat;
 }
