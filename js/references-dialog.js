@@ -1,17 +1,17 @@
 (function ($) {
   Drupal.behaviors.referencesDialog = {
     attach: function (context, settings) {
-      // Attach ourselves to all references-dialog-activate classes.
-      $('a.references-dialog-activate').click(function() {
-        Drupal.ReferencesDialog.open($(this).attr('href'), $(this).find('img').attr('title'));
-        // @todo fix this, and replace with a more stable solution. This will
-        // break if the DOM tree is too different.
-        var reference_element = $(this).parent().parent().prev().find('input');
-        Drupal.ReferencesDialog.entityIdReceived = function(entity_id, title) {
-          reference_element.val(title + ' [nid:' + entity_id + ']');
-        }
-        return false;
-      }, context);
+      $.each(settings.ReferencesDialog.fields, function(key, widget_settings) {
+        var ref = '.' + key + ' a.references-dialog.activate';
+        $('.' + key + ' a.references-dialog-activate').click(function() {
+          Drupal.ReferencesDialog.open($(this).attr('href'), $(this).find('img').attr('title'));
+          Drupal.ReferencesDialog.entityIdReceived = function(entity_id, label) {
+            var value = widget_settings.format.replace('$label', label).replace('$entity_id', entity_id);
+            $('#' + key).val(value);
+          }
+          return false;
+        }, context);
+      });
     }
   };
 

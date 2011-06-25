@@ -125,11 +125,22 @@ function references_dialog_process_widget(&$element) {
   if (!in_array($widget_type, array_keys($widgets))) {
     return $element;
   }
+  $dialog_widget = references_dialog_widget_load($widget_type);
   // Attach javascript and CSS needed.
   $element['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
   $element['#attached']['css'] = array(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css');
-  $dialog_widget = references_dialog_widget_load($widget_type);
-  
+  $element['#attached']['js'][] = array(
+    'data' => array(
+      'ReferencesDialog' => array(
+        'fields' => array(
+          $element['#id'] => array(
+            'format' => $dialog_widget['format'],
+          ),
+        ),
+      ),
+    ),
+    'type' => 'setting',
+  );
   $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
   $dialog_links = array();
   foreach ($dialog_widget['operations'] as $operation => $settings) {
@@ -143,7 +154,9 @@ function references_dialog_process_widget(&$element) {
     }
   }
   if (count($dialog_links)) {
-    $element['#suffix'] = theme('references_dialog_links', $dialog_links);
+    // We add a div directly into the markup here since we really need it in order
+    // to make sure the javascript works.
+    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', $dialog_links) . '</div>';
   }
   return $element;
 }

@@ -14,6 +14,7 @@ function node_reference_references_dialog_widgets() {
       'element_type' => 'textfield',
       'dialog_form' => 'node_reference_dialog_form',
       'entity_type' => 'node',
+      'format' => '$label [nid: $entity_id]',
       'operations' => array(
         'search' => array(
           'function' => 'node_reference_dialog_search_link',
