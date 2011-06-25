@@ -226,8 +226,8 @@ function references_dialog_search_view($entity_type, $field_name, $bundle_name) 
   $args = array_splice($args, 2);
   $instance = field_info_instance($entity_type, $field_name, $bundle_name);
   $field_info = field_info_field($field_name);
-  if ($instance && $instance['widget']['settings']['search_dialog']) {
-    list($view_name, $display) = explode(':', $instance['widget']['settings']['search_dialog_view']);
+  if ($instance && $instance['widget']['settings']['references_dialog_search']) {
+    list($view_name, $display) = explode(':', $instance['widget']['settings']['references_dialog_search_view']);
     $view = views_get_view($view_name);
     // Check for referencable types and pass them as arguments if they exist.
     if (isset($field_info['settings']['referenceable_types'])) {
