@@ -4,7 +4,11 @@
  * @file
  * This the main module file.
  */
+
+// Include references files.
+// @todo find a better way to deal with this.
 require dirname(__FILE__) . '/includes/node_reference.inc';
+require dirname(__FILE__) . '/includes/user_reference.inc';
 
 function references_dialog_element_info_alter(&$info) {
   foreach (references_dialog_widgets() as $widget) {
@@ -327,7 +331,12 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
   $entity = reset(entity_load($entity_type, array($entity_id)));
   $entity_info = entity_get_info($entity_type);
   $entity_id = $entity->{$entity_info['entity keys']['id']};
-  $entity_title = $entity->{$entity_info['entity keys']['label']};
+  if (isset($entity_info['label callback'])) {
+    $entity_title = $entity_info['label callback']($entity);  
+  }
+  else {
+    $entity_title = $entity->{$entity_info['entity keys']['label']};
+  }
   if (isset($entity_id) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
     drupal_add_js(array(
