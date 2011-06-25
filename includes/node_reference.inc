@@ -46,12 +46,18 @@ function node_reference_dialog_search_link($element, $widget_settings, $field, $
 }
 
 function node_reference_dialog_edit_link($element, $widget_settings, $field, $instance) {
-  return array(
-    array(
-      'title' => t('Edit'),
-      'href' => 'node/' . $element['#default_value'] . '/edit'
-    ),
-  );
+  if (isset($element['#default_value'])) {
+    $node = node_load($element['#default_value']);
+    if (node_access('update', $node)) {
+      return array(
+        array(
+          'title' => t('Edit'),
+          'href' => 'node/' . $element['#default_value'] . '/edit'
+        ),
+      );
+    }
+  }
+  return array();
 }
 
 function node_reference_dialog_add_link($element, $widget_settings, $field, $instance) {
@@ -59,10 +65,12 @@ function node_reference_dialog_add_link($element, $widget_settings, $field, $ins
   foreach ($field['settings']['referenceable_types'] as $type => $active) {
     if ($active !== 0) {
       $node_type = node_type_load($type);
-      $add_links[] = array(
-        'title' => t('Create @type', array('@type' => $node_type->name)),
-        'href' => 'node/add/' . strtr($type, array('_' => '-')),
-      );
+      if (node_access('create', $node_type->name)) {
+        $add_links[] = array(
+          'title' => t('Create @type', array('@type' => $node_type->name)),
+          'href' => 'node/add/' . strtr($type, array('_' => '-')),
+        );
+      }
     }
   }
   return $add_links;
