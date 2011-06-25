@@ -67,10 +67,3 @@ function node_reference_dialog_add_link($element, $widget_settings, $field, $ins
   }
   return $add_links;
 }
-
-/**
- * This form provides add, edit and search settings.
- */
-function node_reference_dialog_form(&$element, $widget_settings, $field, $instance) {
-
-}
