@@ -15,6 +15,7 @@ function node_reference_references_dialog_widgets() {
       'dialog_form' => 'node_reference_dialog_form',
       'entity_type' => 'node',
       'format' => '$label [nid: $entity_id]',
+      'views_query' => 'node_reference_dialog_views_query',
       'operations' => array(
         'search' => array(
           'function' => 'node_reference_dialog_search_link',
@@ -74,4 +75,16 @@ function node_reference_dialog_add_link($element, $widget_settings, $field, $ins
     }
   }
   return $add_links;
+}
+
+function node_reference_dialog_views_query($display, $view, $instance, $field) {
+  // We need to make sure that no entries that we can't add to our field shows
+  // up, so we need to limit the data here.
+  $types = array();
+  foreach ($field['settings']['referenceable_types'] as $type => $active) {
+    if ($active !== 0) {
+      $types[] = $type;
+    }
+  }
+  $view->query->add_where(0, "$view->base_table.type", $types);
 }

@@ -229,18 +229,11 @@ function references_dialog_search_view($entity_type, $field_name, $bundle_name) 
   if ($instance && $instance['widget']['settings']['references_dialog_search']) {
     list($view_name, $display) = explode(':', $instance['widget']['settings']['references_dialog_search_view']);
     $view = views_get_view($view_name);
-    // Check for referencable types and pass them as arguments if they exist.
-    if (isset($field_info['settings']['referenceable_types'])) {
-      $types = array();
-      foreach ($field_info['settings']['referenceable_types'] as $type => $active) {
-        if ($type == $active) {
-          $types[] = $type;
-        }
-        if (count($types)) {
-          array_unshift($args, implode('+', $types));
-        }
-      }
-    }
+    // Add some nice data about our field that the display handler can use.
+    $view->references_dialog = array(
+      'instance' => $instance,
+      'field' => $field_info,
+    );
     return $view->execute_display($display, $args);  
   }
   else {

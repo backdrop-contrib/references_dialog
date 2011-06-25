@@ -79,4 +79,16 @@ class references_dialog_plugin_display extends references_plugin_display {
     drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
     return $output;
   }
+  
+  function query() {
+    // At this point we need to see if our widget needs to inject something
+    // into the query in order to filter out unwanted data.
+    if (isset($this->view->references_dialog['instance'])) {
+      $widget_type = $this->view->references_dialog['instance']['widget']['type'];
+      $dialog_widget = references_dialog_widget_load($widget_type);
+      if (isset($dialog_widget['views_query']) && function_exists($dialog_widget['views_query'])) {
+        $dialog_widget['views_query']($this, $this->view, $this->view->references_dialog['instance'], $this->view->references_dialog['field']);
+      }
+    }
+  }
 }
