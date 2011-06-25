@@ -4,8 +4,9 @@
  * @file
  * This the main module file.
  */
+require dirname(__FILE__) . '/includes/node_reference.inc';
+
 function references_dialog_element_info_alter(&$info) {
-  $i = 0;
   foreach (references_dialog_widgets() as $widget) {
     if (isset($info[$widget['element_type']])) {
       $info[$widget['element_type']]['#after_build'][] = 'references_dialog_process_widget';
@@ -35,14 +36,15 @@ function references_dialog_menu() {
 }
 
 function references_dialog_field_widget_info_alter(&$info) {
-  foreach (array_keys(references_dialog_widgets()) as $widget) {
-    if (isset($info[$widget]['settings'])) {
-      $info[$widget]['settings'] += array(
-        'references_dialog_add_dialog' => 0,
-        'references_dialog_edit_dialog' => 0,
-        'references_dialog_search_dialog' => 0,
-        'references_dialog_seach_dialog_view' => '',
-      );
+  foreach (references_dialog_widgets() as $widget_name => $widget_info) {
+    if (isset($info[$widget_name]['settings'])) {
+      foreach (array_keys($widget_info['operations']) as $operation) {
+        $info[$widget_name]['settings']['references_dialog_' . $operation] = 0;
+        // Add search view setting if we have search.
+        if ($operation == 'search') {
+          $info[$widget_name]['settings']['references_dialog_search_view'] = '';
+        }
+      }
     }
   }
 }
@@ -51,60 +53,12 @@ function references_dialog_field_widget_info_alter(&$info) {
  * Return an array of supported widgets.
  */
 function references_dialog_widgets() {
-  return array(
-    'node_reference_autocomplete' => array(
-      'element_type' => 'textfield',
-      'dialog_form' => 'references_dialog_nodereferences_form',
-    ), 
-    'user_reference_autocomplete' => array(
-      'element_type' => 'textfield', 
-    ),
-  );
+  return module_invoke_all('references_dialog_widgets');
 }
 
 function references_dialog_widget_load($widget) {
   $widgets = references_dialog_widgets();
   return $widgets[$widget];
-}
-
-function references_dialog_nodereferences_form(&$element, $widget_settings, $field, $instance) {
- $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
- $dialog_links = array();
-  // References provides the option to select which types are referenceable.
-  if (isset($field['settings']['referenceable_types']) && isset($widget_settings['references_dialog_add_dialog']))  {
-    foreach ($field['settings']['referenceable_types'] as $type => $active) {
-      if ($active !== 0) {
-        $node_type = node_type_load($type);
-        $add_link = array(
-          'title' => t('Create @type', array('@type' => $node_type->name)),
-          'href' => 'node/add/' . strtr($type, array('_' => '-')),
-        ) + $link_options;
-        $add_link['attributes']['class'][] = 'add-dialog';
-        $dialog_links[] = $add_link;
-      }
-    }
-  }
-  if ($widget_settings['references_dialog_edit_dialog'] && isset($element['#default_value'])) {
-    $edit_link = array(
-      'title' => t('Edit'), 
-      'href' => 'node/' . $element['#default_value'] . '/edit'
-    ) + $link_options;
-    $edit_link['attributes']['class'][] = 'edit-dialog';
-    $dialog_links[] = $edit_link;
-  }
-  if ($widget_settings['references_dialog_search_dialog']) {
-    $search_link = array(
-      'title' => t('Search'),
-      'href' => 'references-dialog/search/' . $instance['entity_type'] . '/' .
-        $instance['field_name'] . '/' .
-        $instance['bundle'],
-    ) + $link_options;
-    $search_link['attributes']['class'][] = 'search-dialog';
-    $dialog_links[] = $search_link;
-  }
-  if (count($dialog_links)) {
-    $element['#suffix'] = theme('references_dialog_links', $dialog_links);
-  }
 }
 
 /**
@@ -125,34 +79,23 @@ function references_dialog_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $defaults = field_info_widget_settings($widget['type']);
   $settings = array_merge($defaults, $widget['settings']);
-
+  $dialog_widget = references_dialog_widget_load($widget['type']);
   // Add our own additions.
-  $form['references_dialog_add_dialog'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Add dialog'),
-    '#default_value' => $settings['references_dialog_add_dialog'],
-    '#description' => t('Display an option to add a new node of the reference type that will be inserted into the field.'),
-  );
-  $form['references_dialog_edit_dialog'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Edit dialog'),
-    '#default_value' => $settings['references_dialog_edit_dialog'],
-    '#description' => t('Display an option to edit the referenced node.'),
-  );
-  if (module_exists('views')) {
-    $form['references_dialog_search_dialog'] = array(
+  foreach ($dialog_widget['operations'] as $operation => $dialog_settings) {
+    $form['references_dialog_' . $operation] = array(
       '#type' => 'checkbox',
-      '#title' => t('Search dialog'),
-      '#default_value' => $settings['references_dialog_search_dialog'],
-      '#description' => t('Display an option to search for content.'),
+      '#title' => $dialog_settings['title'],
+      '#default_value' => $settings['references_dialog_' . $operation],
     );
-    $form['references_dialog_search_dialog_view'] = array(
-      '#type' => 'select',
-      '#options' => references_dialog_get_views_options($instance['entity_type']),
-      '#title' => t('Search dialog view'),
-      '#default_value' => !empty($settings['references_dialog_search_dialog_view']) ? $settings['references_dialog_search_dialog_view']: NULL,
-      '#description' => t('Select which view should be used for the search dialog.'),
-    );
+    if ($operation == 'search') {
+      $form['references_dialog_search_view'] = array(
+        '#type' => 'select',
+        '#options' => references_dialog_get_views_options($instance['entity_type']),
+        '#title' => t('Search view'),
+        '#default_value' => !empty($settings['references_dialog_search_view']) ? $settings['references_dialog_search_view']: NULL,
+        '#description' => t('Select which view should be used for the search dialog.'),
+      );
+    }
   }
   return $form;
 }
@@ -179,14 +122,29 @@ function references_dialog_process_widget(&$element) {
   $widget_type = $instance['widget']['type'];
   $widgets = references_dialog_widgets();
   // Bail if we don't have anything to do here.
-  if (!in_array($widget_type, array_keys($widgets)) || (!$widget_settings['references_dialog_search_dialog'] && !$widget_settings['references_dialog_edit_dialog'] && !$widget_settings['references_dialog_add_dialog'])) {
+  if (!in_array($widget_type, array_keys($widgets))) {
     return $element;
   }
   // Attach javascript and CSS needed.
   $element['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
   $element['#attached']['css'] = array(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css');
   $dialog_widget = references_dialog_widget_load($widget_type);
-  $dialog_widget['dialog_form']($element, $widget_settings, $field, $instance);
+  
+  $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
+  $dialog_links = array();
+  foreach ($dialog_widget['operations'] as $operation => $settings) {
+    if (isset($widget_settings['references_dialog_' . $operation]) && $widget_settings['references_dialog_' . $operation]) {
+      $links = $settings['function']($element, $widget_settings, $field, $instance);
+      foreach ($links as $link) {
+        $link += $link_options;
+        $link['attributes']['class'][] = $operation . '-dialog';
+        $dialog_links[] = $link;
+      }
+    }
+  }
+  if (count($dialog_links)) {
+    $element['#suffix'] = theme('references_dialog_links', $dialog_links);
+  }
   return $element;
 }
 
