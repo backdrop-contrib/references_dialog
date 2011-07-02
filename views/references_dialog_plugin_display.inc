@@ -27,6 +27,10 @@ class references_dialog_plugin_display extends references_plugin_display {
 
     return $options;
   }
+  
+  function uses_exposed() {
+    return TRUE;
+  }
 
   /**
    * Override references_plugin_display, and
@@ -68,7 +72,19 @@ class references_dialog_plugin_display extends references_plugin_display {
    * data if necessary.
    */
   function execute() {
-    $output = parent::execute();
+    // Let the world know that this is the page view we're using.
+    views_set_page_view($this->view);
+    // Prior to this being called, the $view should already be set to this
+    // display, and arguments should be set on the view.
+    $this->view->build();
+    if (!empty($this->view->build_info['fail'])) {
+      return drupal_not_found();
+    }
+
+    $this->view->get_breadcrumb(TRUE);
+
+    // And the title, which is much easier.
+    drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
     // Let's add the data necessary to javascript, so that we can
     // act upon it there.
     $js_result = array();
@@ -77,7 +93,9 @@ class references_dialog_plugin_display extends references_plugin_display {
     }
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/search-reference.js');
     drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
-    return $output;
+
+    // And now render the view.
+    return $this->view->render();
   }
   
   function query() {
@@ -90,5 +108,9 @@ class references_dialog_plugin_display extends references_plugin_display {
         $dialog_widget['views_query']($this, $this->view, $this->view->references_dialog['instance'], $this->view->references_dialog['field']);
       }
     }
+  }
+  
+  function render() {
+    return theme($this->theme_functions(), array('view' => $this->view));
   }
 }

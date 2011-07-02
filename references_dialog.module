@@ -275,6 +275,7 @@ function references_dialog_views_plugins() {
       'references_dialog' => array(
         'title' => t('Reference Dialog Search'),
         'admin' => t('References'),
+        'theme' => 'views_view',
         'help' => t('A view that can be used when referencing content.'),
         'handler' => 'references_dialog_plugin_display',
         'help topic' => 'references-dialog',
