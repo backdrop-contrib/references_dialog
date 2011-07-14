@@ -5,19 +5,23 @@
  * This the main module file.
  */
 
-// Include references files.
-// @todo find a better way to deal with this.
-require dirname(__FILE__) . '/includes/node_reference.inc';
-require dirname(__FILE__) . '/includes/user_reference.inc';
-
+/**
+ * Implements hook_element_info_alter().
+ * Add #after_builds to widgets that needs them.
+ */
 function references_dialog_element_info_alter(&$info) {
   foreach (references_dialog_widgets() as $widget) {
+    // If this element type is specified as a type that a widget should be
+    // attached to, go ahead and make it so.
     if (isset($info[$widget['element_type']])) {
       $info[$widget['element_type']]['#after_build'][] = 'references_dialog_process_widget';
     }
   }
 }
 
+/**
+ * Implements hook_menu().
+ */
 function references_dialog_menu() {
   $items = array();
   // This redirect callback is used when adding and editing content in
@@ -34,6 +38,7 @@ function references_dialog_menu() {
 
 /**
  * Get search views attached to a particular field instance.
+ * @param array instance a field instance.
  */
 function references_dialog_get_search_views($instance) {
   $search_views = array();
@@ -55,12 +60,9 @@ function references_dialog_get_search_views($instance) {
 }
 
 /**
- * Helper function to get links for a specific view.
+ * Implements hook_widget_info_alter().
+ * Adds settings that we need to declare to widgets we are extending.
  */
-function references_dialog_get_search_view_links() {
-  
-}
-
 function references_dialog_field_widget_info_alter(&$info) {
   foreach (references_dialog_widgets() as $widget_name => $widget_info) {
     if (isset($info[$widget_name]['settings'])) {
@@ -75,6 +77,11 @@ function references_dialog_field_widget_info_alter(&$info) {
   }
 }
 
+/**
+ * Get instances appropriate for a search view on a particular entity type.
+ * @param string $entity_type name of the entity type.
+ * @return an array of appropriate instances. 
+ */
 function references_dialog_get_search_view_instances($entity_type) {
   $fields = field_info_fields();
   $widgets = field_info_widget_types();
@@ -98,6 +105,11 @@ function references_dialog_widgets() {
   return module_invoke_all('references_dialog_widgets');
 }
 
+/**
+ * Load a particular widget.
+ * @param string $widget the name of the widget.
+ * @return array the widget definition.
+ */
 function references_dialog_widget_load($widget) {
   $widgets = references_dialog_widgets();
   return $widgets[$widget];
@@ -209,12 +221,20 @@ function references_dialog_theme() {
   );
 }
 
+/**
+ * Implements hook_entity_insert().
+ */
 function references_dialog_entity_insert($entity, $entity_type) {
+  // If we are in a dialog, we want to make sure that we redirect to the
+  // the close dialog page, so that the dialog may be closed.
   if (references_dialog_in_dialog()) {
     references_dialog_close_on_redirect($entity, $entity_type);
   }
 }
 
+/**
+ * Implements hook_entity_update().
+ */
 function references_dialog_entity_update($entity, $entity_type) {
   if (references_dialog_in_dialog()) {
     references_dialog_close_on_redirect($entity, $entity_type);
@@ -248,7 +268,9 @@ function references_dialog_init() {
 
 /**
  * Menu callback for fetching a search view.
- * @param $view a view to use.
+ * @param $view_name a view to use.
+ * @param $display_name the display name.
+ * @param $instance_info information aboutythe current display in a packed form.
  */
 function references_dialog_search_view($view_name, $display_name, $instance_info) {
   $args = func_get_args();
@@ -268,6 +290,17 @@ function references_dialog_search_view($view_name, $display_name, $instance_info
   else {
     return drupal_not_found();
   }
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function references_dialog_hook_info() {
+  $hooks = array();
+  $hooks['references_dialog_widgets'] = array(
+    'group' => 'dialog_widgets',
+  );
+  return $hooks;
 }
 
 /**
@@ -303,6 +336,10 @@ function references_dialog_page_alter(&$page) {
   }
 }
 
+/**
+ * Check if we are in a references dialog.
+ * @return boolean if we are in a dialog.
+ */
 function references_dialog_in_dialog() {
   return isset($_GET['render']) && $_GET['render'] == 'references-dialog';
 }
@@ -347,16 +384,23 @@ function references_dialog_redirect_access() {
   return TRUE;
 }
 
+/**
+ * Page callback for our redirect page.
+ */
 function references_dialog_redirect_page($entity_id, $entity_type) {
+  // Get some information about the entity we are dealing with.
   $entity = reset(entity_load($entity_type, array($entity_id)));
   $entity_info = entity_get_info($entity_type);
   $entity_id = $entity->{$entity_info['entity keys']['id']};
+  // Get the entity title, by using the callback if it is defined.
   if (isset($entity_info['label callback'])) {
     $entity_title = $entity_info['label callback']($entity);  
   }
   else {
     $entity_title = $entity->{$entity_info['entity keys']['label']};
   }
+  // Add appropriate javascript that will be used by the parent page to
+  // fill in the required data.
   if (isset($entity_id) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
     drupal_add_js(array(
