@@ -44,7 +44,7 @@
         height: window_height,
         modal: true,
         resizable: false,
-        position: ["center", 10],
+        position: ["center", 50],
         title: title,
         close: function() { Drupal.ReferencesDialog.dialog_open = false; }
       }).width(window_width-10).height(window_height)
