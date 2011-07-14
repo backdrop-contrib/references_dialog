@@ -18,7 +18,7 @@ function node_reference_references_dialog_widgets() {
       'views_query' => 'node_reference_dialog_views_query',
       'operations' => array(
         'search' => array(
-          'function' => 'node_reference_dialog_search_link',
+          'function' => 'references_dialog_get_views_search_links',
           'title' => t('Search Dialog'),
         ),
         'edit' => array(
@@ -32,18 +32,6 @@ function node_reference_references_dialog_widgets() {
       ),
     ),
   );
-}
-
-function node_reference_dialog_search_link($element, $widget_settings, $field, $instance) {
-  $search_link = array(
-    array(
-    'title' => t('Search'),
-    'href' => 'references-dialog/search/' . $instance['entity_type'] . '/' .
-       $instance['field_name'] . '/' .
-       $instance['bundle'],
-    ),
-  );
-  return $search_link;
 }
 
 function node_reference_dialog_edit_link($element, $widget_settings, $field, $instance) {
