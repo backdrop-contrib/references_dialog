@@ -16,7 +16,7 @@ function user_reference_references_dialog_widgets() {
       'format' => '$label [uid: $entity_id]',
       'operations' => array(
         'search' => array(
-          'function' => 'user_reference_dialog_search_link',
+          'function' => 'references_dialog_search_view',
           'title' => t('Search Dialog'),
         ),
         'edit' => array(
@@ -30,18 +30,6 @@ function user_reference_references_dialog_widgets() {
       ),
     ),
   );
-}
-
-function user_reference_dialog_search_link($element, $widget_settings, $field, $instance) {
-  $search_link = array(
-    array(
-    'title' => t('Search'),
-    'href' => 'references-dialog/search/' . $instance['entity_type'] . '/' .
-       $instance['field_name'] . '/' .
-       $instance['bundle'],
-    ),
-  );
-  return $search_link;
 }
 
 function user_reference_dialog_edit_link($element, $widget_settings, $field, $instance) {
