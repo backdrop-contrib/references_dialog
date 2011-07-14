@@ -341,7 +341,10 @@ function references_dialog_page_alter(&$page) {
  * @return boolean if we are in a dialog.
  */
 function references_dialog_in_dialog() {
-  return isset($_GET['render']) && $_GET['render'] == 'references-dialog';
+  return (isset($_GET['render']) && $_GET['render'] == 'references-dialog') ||
+  // We are always in a dialog if we are on a references dialog search page,
+  // otherwise we will have a hard time with views exposed filters.
+  strstr(current_path(), 'references-dialog/search') !== FALSE;
 }
 
 /**

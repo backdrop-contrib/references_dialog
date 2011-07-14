@@ -145,11 +145,28 @@ class references_dialog_plugin_display extends references_plugin_display {
 
   function uses_exposed() { return TRUE; }
 
+  function has_path() { return TRUE; }
+
   /**
    * Override references_plugin_display, and
    * allow for other style types.
    */
   function get_style_type() { return 'normal'; }
+  
+  function get_path() {
+    // If we have information about the instance, then use it to build the proper
+    // path.
+    if (isset($this->view->references_dialog['instance'])) {
+      $instance = &$this->view->references_dialog['instance'];
+      $instance_info = implode(':', array($instance['entity_type'], $instance['field_name'], $instance['bundle']));
+      $view_name = $this->view->name;
+      $display_name = $this->display->id;
+      return 'references-dialog/search/' . $view_name . '/' . $display_name . '/' . $instance_info;
+    }
+    else {
+      return parent::get_path();
+    }
+  }
 
   /**
    * The default execute handler fully renders the view.
