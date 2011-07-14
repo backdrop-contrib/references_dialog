@@ -152,7 +152,7 @@ class references_dialog_plugin_display extends references_plugin_display {
    * allow for other style types.
    */
   function get_style_type() { return 'normal'; }
-  
+
   function get_path() {
     // If we have information about the instance, then use it to build the proper
     // path.
@@ -227,7 +227,7 @@ class references_dialog_plugin_display extends references_plugin_display {
 
     return $content;
   }
-  
+
   function query() {
     // At this point we need to see if our widget needs to inject something
     // into the query in order to filter out unwanted data.
@@ -239,7 +239,7 @@ class references_dialog_plugin_display extends references_plugin_display {
       }
     }
   }
-  
+
   function render() {
     return theme($this->theme_functions(), array('view' => $this->view));
   }
