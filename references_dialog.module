@@ -227,7 +227,7 @@ function references_dialog_theme() {
 function references_dialog_entity_insert($entity, $entity_type) {
   // If we are in a dialog, we want to make sure that we redirect to the
   // the close dialog page, so that the dialog may be closed.
-  if (references_dialog_in_dialog()) {
+  if (references_dialog_in_dialog() && references_dialog_close_on_submit()) {
     references_dialog_close_on_redirect($entity, $entity_type);
   }
 }
@@ -236,7 +236,7 @@ function references_dialog_entity_insert($entity, $entity_type) {
  * Implements hook_entity_update().
  */
 function references_dialog_entity_update($entity, $entity_type) {
-  if (references_dialog_in_dialog()) {
+  if (references_dialog_in_dialog() && references_dialog_close_on_submit()) {
     references_dialog_close_on_redirect($entity, $entity_type);
   }
 }
@@ -345,6 +345,13 @@ function references_dialog_in_dialog() {
   // We are always in a dialog if we are on a references dialog search page,
   // otherwise we will have a hard time with views exposed filters.
   strstr(current_path(), 'references-dialog/search') !== FALSE;
+}
+
+/**
+ * Check if we should close the dialog upon submition.
+ */
+function references_dialog_close_on_submit() {
+  return (!isset($_GET['closeonsubmit']) || $_GET['closeonsubmit']);
 }
 
 /**

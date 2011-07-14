@@ -1,6 +1,9 @@
 (function ($) {
   Drupal.behaviors.referencesDialog = {
     attach: function (context, settings) {
+      // Make sure the overlay doesn't mess things up for us by unbinding it's
+      // event.
+      $(document).unbind('click.drupal-overlay mouseup.drupal-overlay');
       // Check what type of display we are dealing with.
       // We can't combine all of these, since that causes
       // JQuery.each() to freak ut.'
@@ -19,13 +22,24 @@
       }
       selector.each(function(index) {
         $(this).click(function() {
-          // Fetch the entity from wherever it might be.
-          var entity = settings.ReferencesDialog.entities[index];
-          // Tell our parent that we are done with what we want to do here.
-          parent.Drupal.ReferencesDialog.close(entity.entity_id, entity.title);
-          return false;
+          // Ignore if the element is a link.
+          if (event.target && event.target.nodeName && event.target.nodeName.toLowerCase() !== 'a') {          
+            // Fetch the entity from wherever it might be.
+            var entity = settings.ReferencesDialog.entities[index];
+            // Tell our parent that we are done with what we want to do here.
+            parent.Drupal.ReferencesDialog.close(entity.entity_id, entity.title);
+            return false;
+          }
         });
       });
+      // Process all links so that they have the render=references_dialog
+      // parameter. Also, make sure that we don't close the dialog and enter
+      // anything upon entity submittion.'
+      $('#references-dialog-page a').each(function(key, element) {
+        var href = $(element).attr('href');
+        $(element).attr('href', href + (href.indexOf('?') ? '&' : '?') 
+          + 'render=references-dialog&closeonsubmit=0');
+      })
     }
   }
 })(jQuery);
