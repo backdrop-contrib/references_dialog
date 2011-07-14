@@ -263,7 +263,7 @@ function references_dialog_search_view($view_name, $display_name, $instance_info
       'instance' => $instance,
       'field' => $field_info,
     );
-    return $view->execute_display($display, $args);  
+    return $view->execute_display($display_name, $args);  
   }
   else {
     return drupal_not_found();
