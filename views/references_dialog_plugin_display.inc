@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Contains the default display plugin.
@@ -24,13 +25,125 @@ class references_dialog_plugin_display extends references_plugin_display {
     // Set the display title to an empty string (not used in this display type).
     $options['title']['default'] = '';
     $options['defaults']['default']['title'] = FALSE;
-
+    
+    // Set the things we actually add with this plugin.
+    $options['field_instances'] = array('default' => array());
     return $options;
   }
   
-  function uses_exposed() {
-    return TRUE;
+  function options_summary(&$categories, &$options) {
+    parent::options_summary($categories, $options);
+    $categories['references_dialog'] = array(
+      'title' => t('References Dialog'),
+      'column' => 'second',
+      'build' => array(
+        '#weight' => -10,
+      ),
+    );
+    $field_instances = $this->get_option('field_instances');
+    $options['field_instances'] = array(
+      'category' => 'references_dialog',
+      'title' => t('Field instances'),
+      'value' => views_ui_truncate(implode(',', $field_instances), 24),
+    );
   }
+  
+  function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
+    if ($form_state['section'] == 'field_instances') {
+      // Find the entity that matches our base table.
+      $entities = entity_get_info();
+      foreach ($entities as $entity_type => $entity_info) {
+        if ($entity_info['base table'] == $this->view->base_table) {
+          break;
+        }
+      }
+      $instances = references_dialog_get_search_view_instances($entity_type);
+      $instance_options = array();
+
+      foreach ($instances as $instance) {
+        $instance_options[$instance['entity_type'] . ':' . $instance['field_name'] . ':' . $instance['bundle']] = $instance['field_name'];
+      }
+      $form['field_instances'] = array(
+        '#type' => 'checkboxes',
+        '#options' => $instance_options,
+        '#default_value' => $this->get_option('field_instances'),
+        '#title' => t('Field instances'),
+      );
+    }
+  }
+  
+  function options_submit(&$form, &$form_state) {
+    $this->set_option('field_instances', $this->_sanitize_checkboxes($form_state['values']['field_instances']));
+  }
+  
+  function _sanitize_checkboxes($boxes) {
+    $sanitized = array();
+    foreach ($boxes as $key => $box) {
+      if ($box) {
+        $sanitized[] = $box;
+      }
+    }
+    return $sanitized;
+  }
+  
+  function _set_access_arguments(&$items) {
+    $access_plugin = $this->get_plugin('access');
+    if (!isset($access_plugin)) {
+      $access_plugin = views_get_plugin('access', 'none');
+    }
+
+    // Get access callback might return an array of the callback + the dynamic arguments.
+    $access_plugin_callback = $access_plugin->get_access_callback();
+
+    if (is_array($access_plugin_callback)) {
+      $access_arguments = array();
+
+      // Find the plugin arguments.
+      $access_plugin_method = array_shift($access_plugin_callback);
+      $access_plugin_arguments = array_shift($access_plugin_callback);
+      if (!is_array($access_plugin_arguments)) {
+        $access_plugin_arguments = array();
+      }
+
+      $access_arguments[0] = array($access_plugin_method, &$access_plugin_arguments);
+
+      // Move the plugin arguments to the access arguments array.
+      $i = 1;
+      foreach ($access_plugin_arguments as $key => $value) {
+        if (is_int($value)) {
+          $access_arguments[$i] = $value;
+          $access_plugin_arguments[$key] = $i;
+          $i++;
+        }
+      }
+    }
+    else {
+      $access_arguments = array($access_plugin_callback);
+    }
+    foreach ($items as &$item) {
+      $item['access arguments'] = $access_arguments;
+    }
+  }
+
+  function execute_hook_menu() {
+    $items = array();
+    $instances = $this->get_option('field_instances');
+    $view_name = $this->view->name;
+    $display_name = $this->display->id;
+    foreach ($instances as $instance) {
+      $items['references-dialog/search/' . $view_name . '/' . $display_name . '/' . $instance] = array(
+        'type' => MENU_CALLBACK,
+        'page callback' => 'references_dialog_search_view',
+        'page arguments' => array($view_name, $display_name, $instance),
+        'access callback' => 'views_access',
+      );
+    }
+    $this->_set_access_arguments($items);
+    return $items;
+  }
+
+  function uses_exposed() { return TRUE; }
 
   /**
    * Override references_plugin_display, and
