@@ -145,8 +145,6 @@ class references_dialog_plugin_display extends references_plugin_display {
 
   function uses_exposed() { return TRUE; }
 
-  function has_path() { return TRUE; }
-
   /**
    * Override references_plugin_display, and
    * allow for other style types.
