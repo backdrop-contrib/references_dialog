@@ -37,6 +37,17 @@ function references_dialog_menu() {
 }
 
 /**
+ * Implements hook_admin_paths().
+ */
+function references_dialog_admin_paths() {
+  // We only activate admin theme if we use the admin theme
+  // when editing nodes.
+  if (variable_get('node_admin_theme', FALSE)) {
+    return array('references-dialog/search/*' => TRUE);
+  }
+}
+
+/**
  * Get search views attached to a particular field instance.
  * @param array instance a field instance.
  */
