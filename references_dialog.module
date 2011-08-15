@@ -91,13 +91,32 @@ function references_dialog_field_widget_info_alter(&$info) {
 /**
  * Get instances appropriate for a search view on a particular entity type.
  * @param string $entity_type name of the entity type.
- * @return an array of appropriate instances. 
+ * @return an array of appropriate instances.
  */
-function references_dialog_get_search_view_instances($entity_type) {
+function references_dialog_get_search_view_instances($entity_type = FALSE) {
+  if ($entity_type) {
+    return _references_dialog_get_entity_instances($entity_type);
+  }
+  else {
+    $types = entity_get_info();
+    $instances = array();
+    foreach (array_keys($types) as $type) {
+      _references_dialog_get_entity_instances($type, $instances);
+    }
+    return $instances;
+  }
+}
+
+/**
+ * Get all search view fields matching an entity.
+ * @param string $entity_type the entity type.
+ * @return array
+ *   an array of instances.
+ */
+function _references_dialog_get_entity_instances($entity_type, &$applicable_instances) {
   $fields = field_info_fields();
   $widgets = field_info_widget_types();
   $dialog_widgets = references_dialog_widgets();
-  $applicable_instances = array();
   foreach ($fields as $field_name => $field) {
     foreach ($field['bundles'][$entity_type] as $bundle_name)  {
       $instance = field_info_instance($entity_type, $field_name, $bundle_name);
@@ -222,7 +241,7 @@ function references_dialog_process_widget(&$element) {
  * Implements hook_theme().
  */
 function references_dialog_theme() {
-  return array( 
+  return array(
     'references_dialog_page' => array(
       'render element' => 'page',
       'template' => 'references-dialog-page',
@@ -260,10 +279,10 @@ function references_dialog_entity_update($entity, $entity_type) {
 function references_dialog_close_on_redirect($entity, $entity_type) {
   $entity_info = entity_get_info($entity_type);
   // We use $_GET['destination'] since that overrides anything that happens
-  // in the form. It is a hack, but it is very effective, since we don't have 
+  // in the form. It is a hack, but it is very effective, since we don't have
   // to be worried about getting overrun by other form submit handlers.
-  $_GET['destination'] = 'references-dialog/redirect/' . 
-  $entity->{$entity_info['entity keys']['id']} . '/' . 
+  $_GET['destination'] = 'references-dialog/redirect/' .
+  $entity->{$entity_info['entity keys']['id']} . '/' .
   $entity_type .
   '?references-dialog-close=1&render=references-dialog';
 }
@@ -297,7 +316,7 @@ function references_dialog_search_view($view_name, $display_name, $instance_info
       'instance' => $instance,
       'field' => $field_info,
     );
-    return $view->execute_display($display_name, $args);  
+    return $view->execute_display($display_name, $args);
   }
   else {
     return drupal_not_found();
@@ -319,7 +338,7 @@ function references_dialog_hook_info() {
  * Get all views search links for an instance.
  * This function should be used by referencesw dialog widgets that uses
  * views for it's search functionality.
- * @param type $instance 
+ * @param type $instance
  */
 function references_dialog_get_views_search_links($element, $widget_settings, $field, $instance) {
   $applicable_views = references_dialog_get_search_views($instance);
@@ -416,7 +435,7 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
   $entity_id = $entity->{$entity_info['entity keys']['id']};
   // Get the entity title, by using the callback if it is defined.
   if (isset($entity_info['label callback'])) {
-    $entity_title = $entity_info['label callback']($entity);  
+    $entity_title = $entity_info['label callback']($entity);
   }
   else {
     $entity_title = $entity->{$entity_info['entity keys']['label']};

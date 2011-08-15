@@ -25,12 +25,12 @@ class references_dialog_plugin_display extends references_plugin_display {
     // Set the display title to an empty string (not used in this display type).
     $options['title']['default'] = '';
     $options['defaults']['default']['title'] = FALSE;
-    
+
     // Set the things we actually add with this plugin.
     $options['field_instances'] = array('default' => array());
     return $options;
   }
-  
+
   function options_summary(&$categories, &$options) {
     parent::options_summary($categories, $options);
     $categories['references_dialog'] = array(
@@ -47,7 +47,7 @@ class references_dialog_plugin_display extends references_plugin_display {
       'value' => views_ui_truncate(implode(',', $field_instances), 24),
     );
   }
-  
+
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     if ($form_state['section'] == 'field_instances') {
@@ -58,7 +58,7 @@ class references_dialog_plugin_display extends references_plugin_display {
           break;
         }
       }
-      $instances = references_dialog_get_search_view_instances($entity_type);
+      $instances = references_dialog_get_search_view_instances();
       $instance_options = array();
 
       foreach ($instances as $instance) {
@@ -72,11 +72,11 @@ class references_dialog_plugin_display extends references_plugin_display {
       );
     }
   }
-  
+
   function options_submit(&$form, &$form_state) {
     $this->set_option('field_instances', $this->_sanitize_checkboxes($form_state['values']['field_instances']));
   }
-  
+
   function _sanitize_checkboxes($boxes) {
     $sanitized = array();
     foreach ($boxes as $key => $box) {
@@ -86,7 +86,7 @@ class references_dialog_plugin_display extends references_plugin_display {
     }
     return $sanitized;
   }
-  
+
   function _set_access_arguments(&$items) {
     $access_plugin = $this->get_plugin('access');
     if (!isset($access_plugin)) {
@@ -221,7 +221,7 @@ class references_dialog_plugin_display extends references_plugin_display {
       $js_result[] = array('entity_id' => $result->{$this->view->base_field}, 'title' => $result->node_title);
     }
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/search-reference.js');
-    drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');    
+    drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
 
     return $content;
   }
