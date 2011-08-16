@@ -21,14 +21,13 @@
         return;
       }
       selector.each(function(index) {
-        $(this).click(function() {
+        $(this).click(function(e) {
           // Ignore if the element is a link.
-          if (event.target && event.target.nodeName && event.target.nodeName.toLowerCase() !== 'a') {          
+          if (e.target && e.target.nodeName && e.target.nodeName.toLowerCase() !== 'a') {
             // Fetch the entity from wherever it might be.
             var entity = settings.ReferencesDialog.entities[index];
             // Tell our parent that we are done with what we want to do here.
             parent.Drupal.ReferencesDialog.close(entity.entity_id, entity.title);
-            return false;
           }
         });
       });
@@ -37,7 +36,7 @@
       // anything upon entity submittion.'
       $('#references-dialog-page a').each(function(key, element) {
         var href = $(element).attr('href');
-        $(element).attr('href', href + (href.indexOf('?') ? '&' : '?') 
+        $(element).attr('href', href + (href.indexOf('?') ? '&' : '?')
           + 'render=references-dialog&closeonsubmit=0');
       })
     }
