@@ -53,6 +53,9 @@ function references_dialog_references_dialog_widgets() {
   );
 }
 
+/**
+ * Edit link callback for node references.
+ */
 function references_dialog_node_reference_edit_link($element, $widget_settings, $field, $instance) {
   if (isset($element['#default_value'])) {
     $node = node_load($element['#default_value']);
@@ -68,6 +71,9 @@ function references_dialog_node_reference_edit_link($element, $widget_settings, 
   return array();
 }
 
+/**
+ * Add link callback for node references.
+ */
 function references_dialog_node_reference_add_link($element, $widget_settings, $field, $instance) {
   $add_links = array();
   foreach ($field['settings']['referenceable_types'] as $type => $active) {
@@ -84,6 +90,9 @@ function references_dialog_node_reference_add_link($element, $widget_settings, $
   return $add_links;
 }
 
+/**
+ * View query callback for node references.
+ */
 function references_dialog_node_reference_views_query($display, $view, $instance, $field) {
   // We need to make sure that no entries that we can't add to our field shows
   // up, so we need to limit the data here.
@@ -96,6 +105,9 @@ function references_dialog_node_reference_views_query($display, $view, $instance
   $view->query->add_where(0, "$view->base_table.type", $types);
 }
 
+/**
+ * Edit callback for user references.
+ */
 function references_dialog_user_reference_edit_link($element, $widget_settings, $field, $instance) {
   return array(
     array(
@@ -105,6 +117,9 @@ function references_dialog_user_reference_edit_link($element, $widget_settings, 
   );
 }
 
+/**
+ * Add link callback for user references.
+ */
 function references_dialog_user_reference_add_link($element, $widget_settings, $field, $instance) {
   return array(
     array(

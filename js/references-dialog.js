@@ -1,8 +1,10 @@
 (function ($) {
+
   Drupal.behaviors.referencesDialog = {
     attach: function (context, settings) {
+      // Add appropriate classes on all fields that should have it. This is
+      // necessary since we don't actually know what markup we are dealing with.
       $.each(settings.ReferencesDialog.fields, function(key, widget_settings) {
-        var ref = '.' + key + ' a.references-dialog.activate';
         $('.' + key + ' a.references-dialog-activate').click(function() {
           Drupal.ReferencesDialog.open($(this).attr('href'), $(this).find('img').attr('title'));
           Drupal.ReferencesDialog.entityIdReceived = function(entity_id, label) {
@@ -22,7 +24,7 @@
     dialog_open: false,
     open_dialog: null
   }
-  
+
   /**
    * If this property is set to be a function, it
    * will be called when an entity is recieved from an overlay.
@@ -35,8 +37,11 @@
    */
   Drupal.ReferencesDialog.open = function(href, title) {
     if (!this.dialog_open) {
+      // Add render references dialog, so that we know that we should be in a
+      // dialog.
       href += "?render=references-dialog";
       // Get the current window size and do 75% of the width and 90% of the height.
+      // @todo Add settings for this so that users can configure this by themselves.
       var window_width = $(window).width() / 100*75;
       var window_height = $(window).height() / 100*90;
       this.open_dialog = $('<iframe class="references-dialog-iframe" src="' + href + '"></iframe>').dialog({
@@ -59,7 +64,7 @@
       this.dialog_open = true;
     }
   }
-  
+
   /**
    * Set dimensions of the dialog dependning on the current winow size
    * and scroll position.
