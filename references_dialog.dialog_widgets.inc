@@ -37,15 +37,15 @@ function references_dialog_references_dialog_widgets() {
       'format' => '$label [uid: $entity_id]',
       'operations' => array(
         'search' => array(
-          'function' => 'references_dialog_search_view',
+          'function' => 'references_dialog_get_views_search_links',
           'title' => t('Search Dialog'),
         ),
         'edit' => array(
-          'function' => 'references_dialoguser_reference_edit_link',
+          'function' => 'references_dialog_user_reference_edit_link',
           'title' => t('Edit dialog'),
         ),
         'add' => array(
-          'function' => 'references_dialog_dialog_add_link',
+          'function' => 'references_dialog_user_reference_add_link',
           'title' => t('Add dialog'),
         ),
       ),
@@ -109,22 +109,30 @@ function references_dialog_node_reference_views_query($display, $view, $instance
  * Edit callback for user references.
  */
 function references_dialog_user_reference_edit_link($element, $widget_settings, $field, $instance) {
-  return array(
-    array(
+  global $user;
+  $user_links = array();
+  if (is_numeric($element['#default_value']) && user_load($element['#default_value']) &&
+       user_access('access user profiles') &&
+       (user_access('administer users') || $user->uid == $element['#default_value'])) {
+    $user_links[] = array(
       'title' => t('Edit'),
-      'href' => 'user/' . $element['#default_value'] . '/edit'
-    ),
-  );
+      'href' => 'user/' . $element['#default_value'] . '/edit',
+    );
+  }
+  return $user_links;
 }
 
 /**
  * Add link callback for user references.
  */
 function references_dialog_user_reference_add_link($element, $widget_settings, $field, $instance) {
-  return array(
-    array(
+  $user_links = array();
+  // Check permissions for adding users.
+  if (user_access('administer users')) {
+    $user_links[] = array(
       'title' => t('Create user'),
       'href' => 'admin/people/create'
-    ),
-  );
+    );
+  }
+  return $user_links;
 }
