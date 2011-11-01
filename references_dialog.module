@@ -348,8 +348,10 @@ function references_dialog_get_views_search_links($element, $widget_settings, $f
   // later on.
   $instance_info = implode(':', array($instance['entity_type'], $instance['field_name'], $instance['bundle']));
   foreach ($applicable_views as $view_name => $view) {
+    $title = !empty($view->display[$view->current_display]->display_options['title']) ?
+    $view->display[$view->current_display]->display_options['title'] : t('Search');
     $links[] = array(
-      'title' => t('Search'),
+      'title' => $title,
       'href' => 'references-dialog/search/' . $view_name . '/' .
          $view->current_display . '/' .
          $instance_info,
