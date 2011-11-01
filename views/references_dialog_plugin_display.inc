@@ -10,7 +10,7 @@
  *
  * @ingroup views_display_plugins
  */
-class references_dialog_plugin_display extends references_plugin_display {
+class references_dialog_plugin_display extends views_plugin_display {
   function option_definition() {
     $options = parent::option_definition();
 
