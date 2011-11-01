@@ -22,12 +22,8 @@ class references_dialog_plugin_display extends views_plugin_display {
     $options['defaults']['default']['row_plugin'] = FALSE;
     $options['defaults']['default']['row_options'] = FALSE;
 
-    // Set the display title to an empty string (not used in this display type).
-    $options['title']['default'] = '';
-    $options['defaults']['default']['title'] = FALSE;
-
     // Set the things we actually add with this plugin.
-    $options['field_instances'] = array('default' => array());
+    $options['attach'] = array('default' => array());
     return $options;
   }
 
@@ -40,17 +36,17 @@ class references_dialog_plugin_display extends views_plugin_display {
         '#weight' => -10,
       ),
     );
-    $field_instances = $this->get_option('field_instances');
-    $options['field_instances'] = array(
+    $field_instances = $this->get_option('attach');
+    $options['attach'] = array(
       'category' => 'references_dialog',
-      'title' => t('Field instances'),
+      'title' => t('Attached to'),
       'value' => views_ui_truncate(implode(',', $field_instances), 24),
     );
   }
 
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    if ($form_state['section'] == 'field_instances') {
+    if ($form_state['section'] == 'attach') {
       // Find the entity that matches our base table.
       $entities = entity_get_info();
       foreach ($entities as $entity_type => $entity_info) {
@@ -58,25 +54,22 @@ class references_dialog_plugin_display extends views_plugin_display {
           break;
         }
       }
-      $instances = references_dialog_get_search_view_instances();
-      $instance_options = array();
+      $attachables = references_dialog_get_search_view_attachables($entity_type);
 
-      foreach ($instances as $instance) {
-        $instance_options[$instance['entity_type'] . ':' . $instance['field_name'] . ':' . $instance['bundle']] = $instance['field_name'];
-      }
-      $form['field_instances'] = array(
+      $form['attach'] = array(
         '#type' => 'checkboxes',
-        '#options' => $instance_options,
-        '#default_value' => $this->get_option('field_instances'),
-        '#title' => t('Field instances'),
+        '#options' => $attachables,
+        '#default_value' => $this->get_option('attach'),
+        '#title' => t('Attach to'),
+        '#description' => t('Choose what to attach this view to.')
       );
     }
   }
 
   function options_submit(&$form, &$form_state) {
     parent::options_submit($form, $form_state);
-    if ($form_state['section'] == 'field_instances') {
-      $this->set_option('field_instances', $this->_sanitize_checkboxes($form_state['values']['field_instances']));
+    if ($form_state['section'] == 'attach') {
+      $this->set_option('attach', $this->_sanitize_checkboxes($form_state['values']['attach']));
     }
   }
 
@@ -131,14 +124,14 @@ class references_dialog_plugin_display extends views_plugin_display {
 
   function execute_hook_menu() {
     $items = array();
-    $instances = $this->get_option('field_instances');
+    $attachables = $this->get_option('attach');
     $view_name = $this->view->name;
     $display_name = $this->display->id;
-    foreach ($instances as $instance) {
-      $items['references-dialog/search/' . $view_name . '/' . $display_name . '/' . $instance] = array(
+    foreach ($attachables as $attachable) {
+      $items['references-dialog/search/' . $view_name . '/' . $display_name . '/' . $attachable] = array(
         'type' => MENU_CALLBACK,
         'page callback' => 'references_dialog_search_view',
-        'page arguments' => array($view_name, $display_name, $instance),
+        'page arguments' => array($view_name, $display_name, $attachable),
         'access callback' => 'views_access',
       );
     }
@@ -199,12 +192,8 @@ class references_dialog_plugin_display extends views_plugin_display {
   function query() {
     // At this point we need to see if our widget needs to inject something
     // into the query in order to filter out unwanted data.
-    if (isset($this->view->references_dialog['instance'])) {
-      $widget_type = $this->view->references_dialog['instance']['widget']['type'];
-      $dialog_widget = references_dialog_widget_load($widget_type);
-      if (isset($dialog_widget['views_query']) && function_exists($dialog_widget['views_query'])) {
-        $dialog_widget['views_query']($this, $this->view, $this->view->references_dialog['instance'], $this->view->references_dialog['field']);
-      }
+    if (isset($this->view->references_dialog['attachable']['query'])) {
+      $this->view->references_dialog['attachable']['query']($this->view);
     }
   }
 

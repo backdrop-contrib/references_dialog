@@ -93,7 +93,7 @@ function references_dialog_node_reference_add_link($element, $widget_settings, $
 /**
  * View query callback for node references.
  */
-function references_dialog_node_reference_views_query($display, $view, $instance, $field) {
+function references_dialog_node_reference_views_query($view, $instance, $field) {
   // We need to make sure that no entries that we can't add to our field shows
   // up, so we need to limit the data here.
   $types = array();

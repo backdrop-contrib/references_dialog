@@ -93,39 +93,66 @@ function references_dialog_field_widget_info_alter(&$info) {
  * @param string $entity_type name of the entity type.
  * @return an array of appropriate instances.
  */
-function references_dialog_get_search_view_instances($entity_type = FALSE) {
-  if ($entity_type) {
-    return _references_dialog_get_entity_instances($entity_type);
+function references_dialog_get_search_view_attachables($entity_type = NULL) {
+  $attachables = module_invoke_all('references_dialog_search_attachables');
+  if (isset($entity_type)) {
+    return $attachables[$entity_type];
   }
   else {
-    $types = entity_get_info();
-    $instances = array();
-    foreach (array_keys($types) as $type) {
-      _references_dialog_get_entity_instances($type, $instances);
-    }
-    return $instances;
+    return $attachables;
   }
 }
 
+function references_dialog_get_attachable($entity_type, $name) {
+  $attachables = module_invoke_all('references_dialog_search_attachables');
+  return $attachables[$entity_type][$name];
+}
+
 /**
- * Get all search view fields matching an entity.
- * @param string $entity_type the entity type.
- * @return array
- *   an array of instances.
+ * Implements hook_references_dialog_search_attachables().
  */
-function _references_dialog_get_entity_instances($entity_type, &$applicable_instances) {
+function references_dialog_references_dialog_search_attachables() {
   $fields = field_info_fields();
   $widgets = field_info_widget_types();
   $dialog_widgets = references_dialog_widgets();
+  $applicable_instances = array();
   foreach ($fields as $field_name => $field) {
-    foreach ($field['bundles'][$entity_type] as $bundle_name)  {
-      $instance = field_info_instance($entity_type, $field_name, $bundle_name);
-      if (in_array($instance['widget']['type'], array_keys($dialog_widgets)) && $instance['widget']['settings']['references_dialog_search']) {
-        $applicable_instances[] = $instance;
+    foreach ($field['bundles'] as $entity_type => $bundles) {
+      foreach ($bundles as $bundle_name)  {
+        $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+        $widget_type = $instance['widget']['type'];
+        if (in_array($widget_type, array_keys($dialog_widgets)) && $instance['widget']['settings']['references_dialog_search']) {
+          // If the entity type is specified, in the declaration, add it here.
+          $dialog_widget = $dialog_widgets[$widget_type];
+          if (isset($dialog_widget['entity_type'])) {
+            $attachable_type = $dialog_widget['entity_type'];
+          }
+          elseif (isset($dialog_widgets[$instance['widget']['type']]['type_callback'])) {
+            $attachable_type = $dialog_widget['type_callback']($instance);
+          }
+          if (isset($attachable_type)) {
+            $applicable_instances[$attachable_type][$entity_type . ':' . $field_name . ':' . $bundle_name] = array(
+              'label' => $instance['label'],
+              'query' => 'references_dialog_attachable_query',
+              'widget' => $dialog_widget,
+            );
+          }
+        }
       }
     }
   }
   return $applicable_instances;
+}
+
+function references_dialog_attachable_query($view) {
+  list($entity_type, $field_name, $bundle_name) = explode(':', $view->view->references_dialog['attachable']['name']);
+  $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+  $field_info = field_info_field($field_name);
+
+  $dialog_widget = $view->references_dialog['attachable']['widget']['type'];
+  if (isset($dialog_widget['views_query']) && function_exists($dialog_widget['views_query'])) {
+    $dialog_widget['views_query']($view, $instance, $field);
+  }
 }
 
 /**
@@ -303,24 +330,22 @@ function references_dialog_init() {
  * @param $display_name the display name.
  * @param $instance_info information aboutythe current display in a packed form.
  */
-function references_dialog_search_view($view_name, $display_name, $instance_info) {
+function references_dialog_search_view($view_name, $display_name, $attachable) {
   $args = func_get_args();
   $args = array_splice($args, 2);
-  list($entity_type, $field_name, $bundle_name) = explode(':', $instance_info);
-  $instance = field_info_instance($entity_type, $field_name, $bundle_name);
-  $field_info = field_info_field($field_name);
-  if ($instance && $instance['widget']['settings']['references_dialog_search']) {
-    $view = views_get_view($view_name);
-    // Add some nice data about our field that the display handler can use.
-    $view->references_dialog = array(
-      'instance' => $instance,
-      'field' => $field_info,
-    );
-    return $view->execute_display($display_name, $args);
+  $view = views_get_view($view_name);
+  // Find the entity that matches our base table.
+  $entities = entity_get_info();
+  foreach ($entities as $entity_type => $entity_info) {
+    if ($entity_info['base table'] == $view->base_table) {
+      break;
+    }
   }
-  else {
-    return drupal_not_found();
-  }
+  // Add some nice data about our field that the display handler can use.
+  $view->references_dialog = array(
+    'attachable' => references_dialog_get_attachable($entity_type, $attachable) + array('name' => $attachable),
+  );
+  return $view->execute_display($display_name, $args);
 }
 
 /**
