@@ -75,7 +75,9 @@ class references_dialog_plugin_display extends views_plugin_display {
 
   function options_submit(&$form, &$form_state) {
     parent::options_submit($form, $form_state);
-    $this->set_option('field_instances', $this->_sanitize_checkboxes($form_state['values']['field_instances']));
+    if ($form_state['section'] == 'field_instances') {
+      $this->set_option('field_instances', $this->_sanitize_checkboxes($form_state['values']['field_instances']));
+    }
   }
 
   function _sanitize_checkboxes($boxes) {
