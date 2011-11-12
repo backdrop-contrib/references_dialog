@@ -6,7 +6,7 @@
       // necessary since we don't actually know what markup we are dealing with.
       $.each(settings.ReferencesDialog.fields, function(key, widget_settings) {
         $('.' + key + ' a.references-dialog-activate').click(function() {
-          Drupal.ReferencesDialog.open($(this).attr('href'), $(this).find('img').attr('title'));
+          Drupal.ReferencesDialog.open($(this).attr('href'), $(this).html());
           Drupal.ReferencesDialog.entityIdReceived = function(entity_id, label) {
             var value = widget_settings.format.replace('$label', label).replace('$entity_id', entity_id);
             $('#' + key).val(value);
