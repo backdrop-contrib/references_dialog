@@ -36,11 +36,11 @@ class references_dialog_plugin_display extends views_plugin_display {
         '#weight' => -10,
       ),
     );
-    $field_instances = $this->get_option('attach');
+    $attachables = $this->get_option('attach');
     $options['attach'] = array(
       'category' => 'references_dialog',
       'title' => t('Attached to'),
-      'value' => views_ui_truncate(implode(',', $field_instances), 24),
+      'value' => views_ui_truncate(implode(',', $attachables), 24),
     );
   }
 
@@ -55,10 +55,13 @@ class references_dialog_plugin_display extends views_plugin_display {
         }
       }
       $attachables = references_dialog_get_search_view_attachables($entity_type);
-
+      $options = array();
+      foreach ($attachables as $name => $attachable) {
+        $options[$name] = $attachable['label'];
+      }
       $form['attach'] = array(
         '#type' => 'checkboxes',
-        '#options' => $attachables,
+        '#options' => $options,
         '#default_value' => $this->get_option('attach'),
         '#title' => t('Attach to'),
         '#description' => t('Choose what to attach this view to.')
