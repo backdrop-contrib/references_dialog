@@ -282,18 +282,19 @@ function references_dialog_process_widget(&$element) {
 function references_dialog_build_element($element) {
   $dialog_links = array();
   // Attach settings.
-  $element['#attached']['js'][] = array(
-    'data' => array(
-      'ReferencesDialog' => array(
-        'fields' => array(
-          $element['#id'] => array(
-            'format' => $element['#format'],
+    $element['#attached']['js'][] = array(
+      'data' => array(
+        'ReferencesDialog' => array(
+          'fields' => array(
+            $element['#id'] => array(
+              'format' => $element['#format'],
+              'target' => $element['#target'],
+            ),
           ),
         ),
       ),
-    ),
-    'type' => 'setting',
-  );
+      'type' => 'setting',
+    );
   if (isset($element['#operations'])) {
    foreach ($dialog_widget['#operations'] as $operation => $links) {
      foreach ($links as $link) {
@@ -533,6 +534,7 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
       'ReferencesDialog' => array(
         'entity_id' => $entity_id,
         'title' => $entity_title,
+        'entity_type' => $entity_type,
       ),
     ), 'setting');
   }

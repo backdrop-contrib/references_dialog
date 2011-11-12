@@ -7,9 +7,17 @@
       $.each(settings.ReferencesDialog.fields, function(key, widget_settings) {
         $('.' + key + ' a.references-dialog-activate').click(function() {
           Drupal.ReferencesDialog.open($(this).attr('href'), $(this).html());
-          Drupal.ReferencesDialog.entityIdReceived = function(entity_id, label) {
-            var value = widget_settings.format.replace('$label', label).replace('$entity_id', entity_id);
-            $('#' + key).val(value);
+          Drupal.ReferencesDialog.entityIdReceived = function(entity_type, entity_id, label) {
+            var value = widget_settings.format
+            .replace('$label', label)
+            .replace('$entity_id', entity_id)
+            .replace('$entity_type', entity_type);
+            if (typeof widget_settings.target != 'undefined') {
+              $('#' + widget_settings.target).val(value)
+            }
+            else {
+              $('#' + key).val(value);
+            }
           }
           return false;
         }, context);
@@ -84,7 +92,7 @@
    * Close the dialog and provide an entity id and a title
    * that we can use in various ways.
    */
-  Drupal.ReferencesDialog.close = function(entity_id, title) {
+  Drupal.ReferencesDialog.close = function(entity_type, entity_id, title) {
     this.open_dialog.dialog('close');
     this.open_dialog.dialog('destroy');
     this.open_dialog = null;
@@ -92,7 +100,7 @@
     // Call our entityIdReceived function if we have one.
     // this is used as an event.
     if (typeof this.entityIdReceived == "function") {
-      this.entityIdReceived(entity_id, title);
+      this.entityIdReceived(entity_type, entity_id, title);
     }
   }
 }(jQuery));

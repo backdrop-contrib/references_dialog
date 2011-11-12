@@ -27,7 +27,7 @@
             // Fetch the entity from wherever it might be.
             var entity = settings.ReferencesDialog.entities[index];
             // Tell our parent that we are done with what we want to do here.
-            parent.Drupal.ReferencesDialog.close(entity.entity_id, entity.title);
+            parent.Drupal.ReferencesDialog.close(entity.entity_type, entity.entity_id, entity.title);
           }
         });
       });

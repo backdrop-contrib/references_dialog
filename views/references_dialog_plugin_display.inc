@@ -44,6 +44,16 @@ class references_dialog_plugin_display extends views_plugin_display {
     );
   }
 
+  function get_entity_type() {
+    // Find the entity that matches our base table.
+    $entities = entity_get_info();
+    foreach ($entities as $entity_type => $entity_info) {
+      if ($entity_info['base table'] == $this->view->base_table) {
+        return $entity_type;
+      }
+    }
+  }
+
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     if ($form_state['section'] == 'attach') {
@@ -176,15 +186,19 @@ class references_dialog_plugin_display extends views_plugin_display {
     }
 
     $this->view->get_breadcrumb(TRUE);
-
     // And the title, which is much easier.
     drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
     $content = $this->view->render();
     // Let's add the data necessary to javascript, so that we can
     // act upon it there.
     $js_result = array();
+    $entity_type = $this->get_entity_type();
     foreach ($this->view->result as $result) {
-      $js_result[] = array('entity_id' => $result->{$this->view->base_field}, 'title' => $result->node_title);
+      $js_result[] = array(
+        'entity_id' => $result->{$this->view->base_field},
+        'title' => $result->node_title,
+        'entity_type' => $entity_type,
+      );
     }
     drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/search-reference.js');
     drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
