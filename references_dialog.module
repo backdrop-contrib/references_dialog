@@ -296,21 +296,18 @@ function references_dialog_build_element($element) {
       'type' => 'setting',
     );
   if (isset($element['#operations'])) {
-   foreach ($dialog_widget['#operations'] as $operation => $links) {
-     foreach ($links as $link) {
-       $link += $link_options;
-       $link['attributes']['class'][] = $operation . '-dialog';
-       $dialog_links[] = $link;
-      }
+    foreach ($element['#operations'] as $operation => $link) {
+     $link['attributes']['class'][] = $operation . '-dialog';
+     $dialog_links[] = $link;
     }
   }
   if (isset($element['#attachable'])) {
-    $dialog_links += references_dialog_get_views_search_links($element['#attachable']);
+    $dialog_links = array_merge($dialog_links, references_dialog_get_views_search_links($element['#attachable']));
   }
   if (count($dialog_links)) {
     $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
     foreach ($dialog_links as &$link) {
-      $link += $link_options;
+      $link = array_merge($link, $link_options);
     }
     // We add a div directly into the markup here since we really need it in order
     // to make sure the javascript works.
