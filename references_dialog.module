@@ -251,21 +251,8 @@ function references_dialog_process_widget(&$element) {
   }
   $dialog_widget = references_dialog_widget_load($widget_type);
   // Attach javascript and CSS needed.
-  $element['#attached']['js'] = array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js');
-  $element['#attached']['css'] = array(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css');
-  $element['#attached']['library'][] = array('system', 'ui.dialog');
-  $element['#attached']['js'][] = array(
-    'data' => array(
-      'ReferencesDialog' => array(
-        'fields' => array(
-          $element['#id'] => array(
-            'format' => $dialog_widget['format'],
-          ),
-        ),
-      ),
-    ),
-    'type' => 'setting',
-  );
+  $element['#attached'] = references_dialog_attached();
+  $element['#attached']['js'][] = references_dialog_js_settings($element['#id'], array('format' => $dialog_widget['format']));
   $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
   $dialog_links = array();
   foreach ($dialog_widget['operations'] as $operation => $settings) {
@@ -287,7 +274,7 @@ function references_dialog_process_widget(&$element) {
 
 function references_dialog_build_element($element) {
   $dialog_links = array();
-  $element['#attached']['js'][] = references_dialog_js_settings($element['#id'], $element['#format'], $element['#target']);
+  $element['#attached']['js'][] = references_dialog_js_settings($element['#id'], array('format' => $element['#format'], 'target' => $element['#target']));
   if (isset($element['#operations'])) {
     foreach ($element['#operations'] as $operation => $link) {
       $link['attributes']['class'][] = $operation . '-dialog';
@@ -315,15 +302,15 @@ function references_dialog_link($link) {
   return $link;
 }
 
-function references_dialog_js_settings($id, $format, $target) {
+function references_dialog_js_settings($id, array $settings) {
+  if (isset($settings['callback_path'])) {
+    $settings['callback_path'] = url($settings['callback_path']);
+  }
   return array(
   	'data' => array(
       'ReferencesDialog' => array(
         'fields' => array(
-          $id => array(
-            'format' => $format,
-            'target' => $target,
-          ),
+          $id => $settings,
         ),
       ),
     ),
