@@ -101,23 +101,28 @@ function references_dialog_get_search_views($attachable) {
 }
 
 function references_dialog_get_applicable_views() {
-  $views = &drupal_static(__FUNCTION__);
-  if (!($views = cache_get('references_dialog_views', NULL))) {
-    // Get all views that has a references_dialog display.
-    $results = views_get_applicable_views('references_dialog display');
-    foreach ($results as $result) {
-      list($view, $display) = $result;
-      if (is_object($view)) {
-        $views[$view->name] = array(
-          'display' => $display,
-          'title' => isset($view->display[$view->current_display]->display_options['title']) ? 
-            $view->display[$view->current_display]->display_options['title'] : t('Search'),
-          'attachables' => $view->display_handler->get_option('attach'),
-        );
-      }
-    }
-    cache_set('references_dialog_views', NULL);
+  $views = &drupal_static(__FUNCTION__, FALSE);
+  if (!$views) {
+    $views = cache_get('references_dialog_views');
+    $views = !empty($views) ? $views->data : FALSE;
   }
+  if (!empty($views)) {
+    return $views;
+  }
+  // Get all views that has a references_dialog display.
+  $results = views_get_applicable_views('references_dialog display');
+  foreach ($results as $result) {
+    list($view, $display) = $result;
+    if (is_object($view)) {
+      $views[$view->name] = array(
+        'display' => $display,
+        'title' => isset($view->display[$view->current_display]->display_options['title']) ? 
+          $view->display[$view->current_display]->display_options['title'] : t('Search'),
+        'attachables' => $view->display_handler->get_option('attach'),
+      );
+    }
+  }
+  cache_set('references_dialog_views', $views);
   return $views;  
 }
 
