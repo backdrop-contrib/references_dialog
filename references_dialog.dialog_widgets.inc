@@ -18,7 +18,7 @@ function references_dialog_references_dialog_widgets() {
       'views_query' => 'references_dialog_node_reference_views_query',
       'operations' => array(
         'search' => array(
-          'function' => 'references_dialog_get_views_search_links',
+          'function' => 'references_dialog_get_field_search_links',
           'title' => t('Search Dialog'),
         ),
         'edit' => array(
