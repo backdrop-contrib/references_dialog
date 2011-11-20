@@ -561,6 +561,79 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
 }
 
 /**
+ * Implements hook_references_dialog_entity_admin_paths().
+ */
+function references_dialog_references_dialog_entity_admin_paths() {
+  // We define the add and edit page callbacks for core entities here.
+  $admin_paths = array(
+    'node' => array(
+      'add' => 'node/add/[bundle-sanitized]',
+      'edit' => 'node/[entity_id]/edit',
+    ),
+    'taxonomy_term' => array(
+      'edit' => 'taxonomy/term/[entity_id]/edit',
+      'add' => 'admin/structure/taxonomy/[bundle]/add',
+    ),
+    // Dealing with taxonomy vocabularies like this is kind of silly,
+    // and accessing them is a bit harder since their admin page is accessible
+    // through their machine name, so we leave it at just adding them for now.
+    'taxonomy_vocabulary' => array(
+      'add' => 'admin/structure/taxonomy/add',
+    ),
+    'comment' => array(
+      'edit' => 'comment/[entity_id]/edit',
+    ),
+    'user' => array(
+      'add' => 'admin/people/create',
+      'edit' => 'user/[entity_id]/edit',
+    ),
+  );
+  // The media module adds an edit callback for media as well.
+  // Note: this will probably not work until file_entity provides an access
+  // API, see http://drupal.org/node/1227706
+  if (module_exists('media')) {
+    $admin_paths['file'] = array(
+      'edit' => 'media/[entity_id]/edit',
+    );
+  }
+  return $admin_paths;
+}
+      
+/**
+ * Get the admin path (edit/add) page for a particular entity
+ * @param string $entity_type the entity type
+ * @param string $op Which operation to perform. Either "edit" or "add".
+ * @param string $bundle The bundle to use.
+ * @param mixed $entity The entity to edit. This is only used with the "edit" operation.
+ * @return string The path where the entity can be edited or created.
+ */
+function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $entity = NULL) {
+  // Let's cache the paths.
+  $paths = &drupal_static(__FUNCTION__ , NULL);
+  if (!isset($paths)) {
+    $paths = module_invoke_all('references_dialog_entity_admin_paths');
+  }
+  if (isset($paths[$entity_type]) && isset($paths[$entity_type][$op])) {
+    $path = $paths[$entity_type][$op];
+    // Create a wrapper, so we can deal with this in a sane way.
+    $wrapper = entity_metadata_wrapper($entity_type, $entity);
+    // Replace [entity_id] with the entity id.
+    if (isset($entity)) {
+        $path = str_replace('[entity_id]', $wrapper->getIdentifier(), $path);
+    }
+    if (isset($bundle)) {
+      $path = str_replace('[bundle]', $bundle, $path);
+      // Some entities (like node) provide a sort of sanitized version.
+      // This makes sure we support this.
+      $bundle = strtr($bundle, array('_' => '-'));
+      $path = str_replace('[bundle-sanitized]', $bundle, $path);
+    }
+    return $path;
+  }
+  return FALSE;
+}
+
+/**
  * Theme function for theming the links for opening
  * the references dialog.
  */
