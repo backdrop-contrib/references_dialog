@@ -84,21 +84,40 @@ function references_dialog_field_get_search_views(array $instance) {
  *   the name of the attachable to look for.
  */
 function references_dialog_get_search_views($attachable) {
-  $search_views = array();
-  // Get all views that has a references_dialog display.
-  $results = views_get_applicable_views('references_dialog display');
-  foreach ($results as $result) {
-    list($view, $display) = $result;
-    if (is_object($view)) {
-      $attachables = $view->display_handler->get_option('attach');
-      foreach ($attachables as $view_attachable) {
+  $search_views = &drupal_static(__FUNCTION__, array());
+  if (!isset($search_views[$attachable])) {
+    $search_views[$attachable] = array();
+    // Get all views that has a references_dialog display.
+    $results = references_dialog_get_applicable_views();
+    foreach ($results as $view_name => $result) {
+      foreach ($result['attachables'] as $name => $view_attachable) {
         if ($attachable == $view_attachable) {
-          $search_views[$view->name] = $view;
+          $search_views[$attachable][$view_name] = $result;
         }
       }
     }
   }
-  return $search_views;
+  return $search_views[$attachable];
+}
+
+function references_dialog_get_applicable_views() {
+  $views = &drupal_static(__FUNCTION__);
+  if (!isset($views)) {
+    // Get all views that has a references_dialog display.
+    $results = views_get_applicable_views('references_dialog display');
+    foreach ($results as $result) {
+      list($view, $display) = $result;
+      if (is_object($view)) {
+        $views[$view->name] = array(
+          'display' => $display,
+          'title' => isset($view->display[$view->current_display]->display_options['title']) ? 
+            $view->display[$view->current_display]->display_options['title'] : t('Search'),
+          'attachables' => $view->display_handler->get_option('attach'),
+        );
+      }
+    }
+  }
+  return $views;  
 }
 
 /**
@@ -443,7 +462,7 @@ function references_dialog_get_field_search_links($element, $widget_settings, $f
 
 /**
  * Get all views search links for an instance.
- * This function should be used by referencesw dialog widgets that uses
+ * This function should be used by references dialog widgets that uses
  * views for it's search functionality.
  * @param type $instance
  */
@@ -451,12 +470,10 @@ function references_dialog_get_views_search_links($attachable) {
   $applicable_views = references_dialog_get_search_views($attachable);
   $links = array();
   foreach ($applicable_views as $view_name => $view) {
-    $title = !empty($view->display[$view->current_display]->display_options['title']) ?
-    $view->display[$view->current_display]->display_options['title'] : t('Search');
     $links[] = references_dialog_link(array(
-      'title' => $title,
+      'title' => $view['title'],
       'href' => 'references-dialog/search/' . $view_name . '/' .
-         $view->current_display . '/' .
+         $view['display'] . '/' .
          $attachable,
     ));
   }
