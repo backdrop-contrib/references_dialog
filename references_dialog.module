@@ -102,7 +102,7 @@ function references_dialog_get_search_views($attachable) {
 
 function references_dialog_get_applicable_views() {
   $views = &drupal_static(__FUNCTION__);
-  if (!isset($views)) {
+  if (!($views = cache_get('references_dialog_views', NULL))) {
     // Get all views that has a references_dialog display.
     $results = views_get_applicable_views('references_dialog display');
     foreach ($results as $result) {
@@ -116,6 +116,7 @@ function references_dialog_get_applicable_views() {
         );
       }
     }
+    cache_set('references_dialog_views', NULL);
   }
   return $views;  
 }
