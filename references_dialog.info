@@ -4,4 +4,5 @@ package = Fields
 core = 7.x
 dependencies[] = field
 dependencies[] = references
+dependencies[] = views
 files[] = views/references_dialog_plugin_display.inc
