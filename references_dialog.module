@@ -263,7 +263,7 @@ function references_dialog_settings_form($field, $instance) {
     $form['references_dialog_' . $operation] = array(
       '#type' => 'checkbox',
       '#title' => $dialog_settings['title'],
-      '#default_value' => $settings['references_dialog_' . $operation],
+      '#default_value' => isset($settings['references_dialog_' . $operation]) ? $settings['references_dialog_' . $operation] : FALSE,
     );
   }
   return $form;
