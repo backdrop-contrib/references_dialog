@@ -213,10 +213,10 @@ function references_dialog_entityreference_link_helper($entity_type, $bundle = N
   $wrapper = entity_metadata_wrapper($entity_type, NULL, array('bundle' => $bundle));
   $info = $wrapper->entityInfo();
   if (isset($bundle)) {
-      $label = $info['bundles'][$bundle]['label'];
+    $label = $info['bundles'][$bundle]['label'];
   }
   else {
-      $label = $info['label'];
+    $label = $info['label'];
   }
   // We use entity_access here. We provide the bundle if this is a node type,
   // since node_access expects that to be passed to it as the entity when you
