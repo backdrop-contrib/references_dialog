@@ -609,6 +609,7 @@ function references_dialog_references_dialog_entity_admin_paths() {
       'edit' => 'user/[entity_id]/edit',
     ),
   );
+
   // The media module adds an edit callback for media as well.
   // Note: this will probably not work until file_entity provides an access
   // API, see http://drupal.org/node/1227706
