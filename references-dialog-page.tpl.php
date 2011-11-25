@@ -6,6 +6,6 @@
  */
 ?>
 <div id="references-dialog-page">
-  <?php if (isset($messages)) { print $messages; } ?>
+  <?php if (isset($messages)): print $messages; endif; ?>
   <?php print render($page['content']); ?>
 </div>

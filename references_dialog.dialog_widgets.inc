@@ -53,7 +53,7 @@ function references_dialog_references_dialog_widgets() {
     'entityreference_autocomplete' => array(
       'element_type' => 'textfield',
       'dialog_form' => 'entityreference_autocomplete_dialog_form',
-  	  'views_query' => 'references_dialog_entityreference_views_query',
+      'views_query' => 'references_dialog_entityreference_views_query',
       'format' => '$label ($entity_id)',
       'operations' => array(
         'edit' => array(
@@ -132,8 +132,8 @@ function references_dialog_user_reference_edit_link($element, $widget_settings, 
   global $user;
   $user_links = array();
   if (is_numeric($element['#default_value']) && user_load($element['#default_value']) &&
-       user_access('access user profiles') &&
-       (user_access('administer users') || $user->uid == $element['#default_value'])) {
+    user_access('access user profiles') &&
+    (user_access('administer users') || $user->uid == $element['#default_value'])) {
     $user_links[] = array(
       'title' => t('Edit'),
       'href' => 'user/' . $element['#default_value'] . '/edit',
@@ -193,7 +193,7 @@ function references_dialog_entityreference_add_link($element, $widget_settings, 
   if (!empty($field['settings']['handler_settings']['target_bundles'])) {
     $bundles = $field['settings']['handler_settings']['target_bundles'];
   }
-  else if (isset($entity_info['bundles'])){
+  elseif (isset($entity_info['bundles'])) {
     // If the entity target bundles is empty, it means all target bundles are allowed. Fill it all up!
     $bundles = $entity_bundles;
   }

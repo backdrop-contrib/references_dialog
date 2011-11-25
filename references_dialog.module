@@ -52,9 +52,9 @@ function references_dialog_menu() {
   // so we can act properly on entities.
   $items['references-dialog/redirect/%/%'] = array(
     'page callback' => 'references_dialog_redirect_page',
-    'page arguments' => array(2,3),
+    'page arguments' => array(2, 3),
     'access callback' => 'references_dialog_redirect_access',
-    'access arguments' => array(2,3),
+    'access arguments' => array(2, 3),
   );
   return $items;
 }
@@ -116,14 +116,14 @@ function references_dialog_get_applicable_views() {
     if (is_object($view)) {
       $views[$view->name] = array(
         'display' => $display,
-        'title' => isset($view->display[$view->current_display]->display_options['title']) ? 
+        'title' => isset($view->display[$view->current_display]->display_options['title']) ?
           $view->display[$view->current_display]->display_options['title'] : t('Search'),
         'attachables' => $view->display_handler->get_option('attach'),
       );
     }
   }
   cache_set('references_dialog_views', $views);
-  return $views;  
+  return $views;
 }
 
 /**
@@ -262,7 +262,7 @@ function references_dialog_settings_form($field, $instance) {
   foreach ($dialog_widget['operations'] as $operation => $dialog_settings) {
     $form['references_dialog_' . $operation] = array(
       '#type' => 'checkbox',
-      '#title' => $dialog_settings['title'],
+      '#title' => check_plain($dialog_settings['title']),
       '#default_value' => isset($settings['references_dialog_' . $operation]) ? $settings['references_dialog_' . $operation] : FALSE,
     );
   }
@@ -352,7 +352,7 @@ function references_dialog_js_settings($id, array $settings) {
     $settings['callback_path'] = url($settings['callback_path']);
   }
   return array(
-  	'data' => array(
+    'data' => array(
       'ReferencesDialog' => array(
         'fields' => array(
           $id => $settings,
@@ -373,7 +373,7 @@ function references_dialog_theme() {
       'template' => 'references-dialog-page',
     ),
     'references_dialog_links' => array(
-      'variables' => array('links' => null),
+      'variables' => array('links' => NULL),
     ),
   );
 }
@@ -478,9 +478,7 @@ function references_dialog_get_views_search_links($attachable) {
   foreach ($applicable_views as $view_name => $view) {
     $links[] = references_dialog_link(array(
       'title' => $view['title'],
-      'href' => 'references-dialog/search/' . $view_name . '/' .
-         $view['display'] . '/' .
-         $attachable,
+      'href' => 'references-dialog/search/' . $view_name . '/' . $view['display'] . '/' . $attachable,
     ));
   }
   return $links;
@@ -621,7 +619,7 @@ function references_dialog_references_dialog_entity_admin_paths() {
   }
   return $admin_paths;
 }
-      
+
 /**
  * Get the admin path (edit/add) page for a particular entity
  * @param string $entity_type the entity type
