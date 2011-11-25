@@ -109,6 +109,7 @@ function references_dialog_get_applicable_views() {
   if (!empty($views)) {
     return $views;
   }
+  $views = array();
   // Get all views that has a references_dialog display.
   $results = views_get_applicable_views('references_dialog display');
   foreach ($results as $result) {
