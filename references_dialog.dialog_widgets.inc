@@ -181,7 +181,7 @@ function references_dialog_entityreference_edit_link($element, $widget_settings,
   }
   return array();
 }
-          
+
 /**
  * Add link callback for entity references.
  */
