@@ -189,24 +189,25 @@ function references_dialog_entityreference_add_link($element, $widget_settings, 
   $add_links = array();
   $entity_type = $field['settings']['target_type'];
   $entity_info = entity_get_info($entity_type);
+  $entity_bundles = array_keys($entity_info['bundles']);
   if (!empty($field['settings']['handler_settings']['target_bundles'])) {
     $bundles = $field['settings']['handler_settings']['target_bundles'];
   }
   else if (isset($entity_info['bundles'])){
     // If the entity target bundles is empty, it means all target bundles are allowed. Fill it all up!
-    $bundles = $entity_info['bundles'];
+    $bundles = $entity_bundles;
   }
-  // Create a link for each allowed bundle.
+  // Create a link for each allowed bundles.
   if (isset($bundles)) {
     foreach ($bundles as $bundle) {
-      if (in_array($bundles, $entity_info['bundles']) && $link = references_dialog_entityreference_link_helper($entity_type, $bundle)) {
+      if (in_array($bundle, $entity_bundles) && $link = references_dialog_entityreference_link_helper($entity_type, $bundle)) {
         $add_links[] = $link;
       }
     }
   }
   return $add_links;
 }
-                        
+
 function references_dialog_entityreference_link_helper($entity_type, $bundle = NULL) {
   $wrapper = entity_metadata_wrapper($entity_type, NULL, array('bundle' => $bundle));
   $info = $wrapper->entityInfo();
