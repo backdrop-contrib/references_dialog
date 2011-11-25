@@ -3,6 +3,5 @@ description = Enhances references fields by adding dialogs for adding and creati
 package = Fields
 core = 7.x
 dependencies[] = field
-dependencies[] = references
 dependencies[] = views
 files[] = views/references_dialog_plugin_display.inc
