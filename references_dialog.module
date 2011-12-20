@@ -192,7 +192,7 @@ function references_dialog_references_dialog_search_attachables() {
             $attachable_type = $dialog_widget['entity_type'];
           }
           elseif (isset($dialog_widgets[$instance['widget']['type']]['type_callback'])) {
-            $attachable_type = $dialog_widget['type_callback']($instance);
+            $attachable_type = $dialog_widget['type_callback']($instance, $field);
           }
           if (isset($attachable_type)) {
             $applicable_instances[$attachable_type][$entity_type . ':' . $field_name . ':' . $bundle_name] = array(

@@ -54,6 +54,7 @@ function references_dialog_references_dialog_widgets() {
       'element_type' => 'textfield',
       'dialog_form' => 'entityreference_autocomplete_dialog_form',
       'views_query' => 'references_dialog_entityreference_views_query',
+      'type_callback' => 'references_dialog_entityreference_get_type',
       'format' => '$label ($entity_id)',
       'operations' => array(
         'edit' => array(
@@ -164,7 +165,7 @@ function references_dialog_entityreference_edit_link($element, $widget_settings,
   if (isset($element['#default_value'])) {
     $entity_type = $field['settings']['target_type'];
     // Take "label (entity id)', match the id from parenthesis.
-    if (preg_match("/.\((\d)\)/", $element['#default_value'], $matches)) {
+    if (preg_match("/.+\((\d+)\)/", $element['#default_value'], $matches)) {
         $value = $matches[1];
       }
     if (isset($value)) {
@@ -246,3 +247,6 @@ function references_dialog_entityreference_views_query($view, $instance, $field)
   }
 }
 
+function references_dialog_entityreference_get_type($instance, $field) {
+  return $field['settings']['target_type'];
+}

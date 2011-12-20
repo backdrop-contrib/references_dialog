@@ -196,7 +196,7 @@ class references_dialog_plugin_display extends views_plugin_display {
     foreach ($this->view->result as $result) {
       $js_result[] = array(
         'entity_id' => $result->{$this->view->base_field},
-        'title' => $result->node_title,
+        'title' => isset($result->node_title) ? $result->node_title : NULL,
         'entity_type' => $entity_type,
       );
     }
