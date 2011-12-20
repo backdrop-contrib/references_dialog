@@ -419,7 +419,10 @@ function references_dialog_close_on_redirect($entity, $entity_type) {
  */
 function references_dialog_init() {
   if (references_dialog_in_dialog()) {
-    module_invoke_all('suppress');
+    if (module_exists('admin_menu')) {
+      module_invoke('admin_menu', 'suppress');
+    }
+
     drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
   }
 }
@@ -490,6 +493,9 @@ function references_dialog_get_views_search_links($attachable) {
  */
 function references_dialog_page_alter(&$page) {
   if (references_dialog_in_dialog()) {
+    unset($page['page_top']);
+    unset($page['page_bottom']);
+
     $page['#theme'] = 'references_dialog_page';
   }
 }
