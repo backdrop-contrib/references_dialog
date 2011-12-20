@@ -163,12 +163,11 @@ class references_dialog_plugin_display extends views_plugin_display {
   function get_path() {
     // If we have information about the instance, then use it to build the proper
     // path.
-    if (isset($this->view->references_dialog['instance'])) {
-      $instance = &$this->view->references_dialog['instance'];
-      $instance_info = implode(':', array($instance['entity_type'], $instance['field_name'], $instance['bundle']));
+    if (isset($this->view->references_dialog['attachable'])) {
+      $attachable = &$this->view->references_dialog['attachable']['name'];
       $view_name = $this->view->name;
       $display_name = $this->display->id;
-      return 'references-dialog/search/' . $view_name . '/' . $display_name . '/' . $instance_info;
+      return 'references-dialog/search/' . $view_name . '/' . $display_name . '/' . $attachable;
     }
     else {
       return parent::get_path();
