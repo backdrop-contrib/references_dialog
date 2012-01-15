@@ -242,7 +242,18 @@ function references_dialog_entityreference_views_query($view, $instance, $field)
   if (!empty($field['settings']['handler_settings']['target_bundles'])) {
     $entity_info = entity_get_info($field['settings']['target_type']);
     if (isset($entity_info['entity keys']['bundle'])) {
-      $view->query->add_where(0, "$view->base_table." . $entity_info['entity keys']['bundle'], array_values($field['settings']['handler_settings']['target_bundles']));
+      // Taxonomy terms don't have their bundle in the table, so we handle them
+      // specially, for now.
+      if ($field['settings']['target_type'] == 'taxonomy_term') {
+        $table = 'taxonomy_vocabulary';
+        $column = 'machine_name';
+      }
+      else {
+        $table = $view->base_table;
+        $column = $entity_info['entity keys']['bundle'];
+      }
+      // Add the bundle property as a default.
+      $view->query->add_where(0, "$table." . $column, array_values($field['settings']['handler_settings']['target_bundles']));
     }
   }
 }
