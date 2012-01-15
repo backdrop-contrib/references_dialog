@@ -1,4 +1,4 @@
-name = References Dialog
+name = References dialog
 description = Enhances references fields by adding dialogs for adding and creating entities.
 package = Fields
 core = 7.x
