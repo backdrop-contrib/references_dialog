@@ -380,6 +380,17 @@ function references_dialog_theme() {
 }
 
 /**
+ * Process variables for references_dialog_page.
+ */
+function template_process_references_dialog_page(&$variables) {
+  // Generate messages last in order to capture as many as possible for the
+  // current page.
+  if (!isset($variables['messages'])) {
+   $variables['messages'] = $variables['page']['#show_messages'] ? theme('status_messages') : '';
+  }
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function references_dialog_entity_insert($entity, $entity_type) {
