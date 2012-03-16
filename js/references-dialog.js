@@ -26,12 +26,14 @@
               }
               // If we have a target, use that.
               else if (typeof widget_settings.target != 'undefined') {
-                $('#' + widget_settings.target).val(value)
+                $('#' + widget_settings.target).val(value);
+                $('#' + widget_settings.target).change();
               }
               // If we have none of the above, we just insert the value in the item
               // that invoked this.
               else {
                 $('#' + key).val(value);
+                $('#' + key).change();
               }
             }
             return false;
