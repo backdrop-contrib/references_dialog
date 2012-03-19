@@ -297,8 +297,12 @@ function references_dialog_process_widget(&$element) {
   }
   $dialog_widget = references_dialog_widget_load($widget_type);
   // Attach javascript and CSS needed.
-  $element['#attached'] = references_dialog_attached();
+  $attached = references_dialog_attached();
+  $element['#attached']['js'][] = $attached['js'][0];
   $element['#attached']['js'][] = references_dialog_js_settings($element['#id'], array('format' => $dialog_widget['format']));
+  $element['#attached']['css'][] = $attached['css'][0];
+  $element['#attached']['library'][] = $attached['library'][0];
+
   $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
   $dialog_links = array();
   foreach ($dialog_widget['operations'] as $operation => $settings) {
