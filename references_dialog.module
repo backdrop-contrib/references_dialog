@@ -662,7 +662,10 @@ function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $en
     if (isset($entity)) {
         $path = str_replace('[entity_id]', $wrapper->getIdentifier(), $path);
     }
-    if (isset($bundle)) {
+    if (!$bundle) {
+      $bundle = $wrapper->getBundle();
+    }
+    if ($bundle) {
       $path = str_replace('[bundle]', $bundle, $path);
       // Some entities (like node) provide a sort of sanitized version.
       // This makes sure we support this.
