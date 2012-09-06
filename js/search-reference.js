@@ -31,12 +31,26 @@
           }
         });
       });
-      // Process all links so that they have the render=references_dialog
+      // Process links so that they have the render=references_dialog
       // parameter. Also, make sure that we don't close the dialog and enter
       // anything upon entity submittion.'
-      $('#references-dialog-page a').each(function(key, element) {
+      $('#references-dialog-page a').once('search-reference-links', function(key, element) {
+
         var href = $(element).attr('href');
-        $(element).attr('href', href + (href.indexOf('?') ? '&' : '?')
+
+        // For links within the Views table, or those with a destination
+        // parameter, open in a new window instead.
+        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table').size() > 0) {
+          $(element).attr('target', '_blank');
+          return;
+        }
+
+        // Don't modify JavaScript URLs or anchors.
+        if (href.indexOf('#') >= 0 || href.indexOf('javascript:') == 0) {
+          return;
+        }
+
+        $(element).attr('href', href + (href.indexOf('?') >= 0 ? '&' : '?')
           + 'render=references-dialog&closeonsubmit=0');
       })
     }
