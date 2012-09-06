@@ -72,7 +72,7 @@
     if (!this.dialog_open) {
       // Add render references dialog, so that we know that we should be in a
       // dialog.
-      href += "?render=references-dialog";
+      href += (href.indexOf('?') > -1 ? '&' : '?') + "render=references-dialog";
       // Get the current window size and do 75% of the width and 90% of the height.
       // @todo Add settings for this so that users can configure this by themselves.
       var window_width = $(window).width() / 100*75;
