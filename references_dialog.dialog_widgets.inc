@@ -194,6 +194,21 @@ function references_dialog_entityreference_add_link($element, $widget_settings, 
   if (!empty($field['settings']['handler_settings']['target_bundles'])) {
     $bundles = $field['settings']['handler_settings']['target_bundles'];
   }
+  elseif (!empty($field['settings']['handler_settings']['view'])) {
+    $name = $field['settings']['handler_settings']['view']['view_name'];
+    $display = $field['settings']['handler_settings']['view']['display_name'];
+    $views = views_get_view($name);
+    $views_display = $views->display;
+
+    if (isset($views_display[$display]->display_options['filters']['type'])) {
+      $views_filters = $views_display[$display]->display_options['filters']['type']['value'];
+    }
+    else {
+      $views_filters = $views_display['default']->display_options['filters']['type']['value'];
+    }
+
+    $bundles = array_keys($views_filters);
+  }
   elseif (isset($entity_info['bundles'])) {
     // If the entity target bundles is empty, it means all target bundles are allowed. Fill it all up!
     $bundles = $entity_bundles;
