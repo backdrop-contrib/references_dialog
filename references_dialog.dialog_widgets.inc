@@ -78,13 +78,24 @@ function references_dialog_references_dialog_widgets() {
  * Edit link callback for node references.
  */
 function references_dialog_node_reference_edit_link($element, $widget_settings, $field, $instance) {
-  if (isset($element['#default_value'])) {
-    $node = node_load($element['#default_value']);
+  if (isset($element['#default_value']) || isset($element['#value'])) {
+    if (isset($element['#default_value'])) {
+      $value = $element['#default_value'];
+    } else {
+      // Take "label [nid:id]', match the id from parenthesis.
+      if (preg_match('/^(?:\s*|(.*) )?\[\s*nid\s*:\s*(\d+)\s*\]$/', $element['#value'], $matches)) {
+        list(, $title, $value) = $matches;
+      } else {
+        return array();
+      }
+    }
+
+    $node = node_load($value);
     if (node_access('update', $node)) {
       return array(
         array(
           'title' => t('Edit'),
-          'href' => 'node/' . $element['#default_value'] . '/edit'
+          'href' => 'node/' . $value . '/edit'
         ),
       );
     }
@@ -96,6 +107,11 @@ function references_dialog_node_reference_edit_link($element, $widget_settings, 
  * Add link callback for node references.
  */
 function references_dialog_node_reference_add_link($element, $widget_settings, $field, $instance) {
+  // Hide add link for non-empty default value.
+  if (!empty($element['#default_value']) || !empty($element['#value'])) {
+    return array();
+  }
+  
   $add_links = array();
   foreach ($field['settings']['referenceable_types'] as $type => $active) {
     if ($active !== 0) {
@@ -130,14 +146,27 @@ function references_dialog_node_reference_views_query($view, $instance, $field) 
  * Edit callback for user references.
  */
 function references_dialog_user_reference_edit_link($element, $widget_settings, $field, $instance) {
+  if (!isset($element['#default_value']) && !isset($element['#value'])) {
+    return array();
+  }
+  if (isset($element['#default_value'])) {
+    $value = $element['#default_value'];
+  } else {
+    // Take "label [uid:id]', match the id from parenthesis.
+    if (preg_match('/^(?:\s*|(.*) )?\[\s*uid\s*:\s*(\d+)\s*\]$/', $element['#value'], $matches)) {
+      list(, $title, $value) = $matches;
+    } else {
+      return array();
+    }
+  }
   global $user;
   $user_links = array();
-  if (is_numeric($element['#default_value']) && user_load($element['#default_value']) &&
+  if (is_numeric($value) && user_load($value) &&
     user_access('access user profiles') &&
-    (user_access('administer users') || $user->uid == $element['#default_value'])) {
+    (user_access('administer users') || $user->uid == $value)) {
     $user_links[] = array(
       'title' => t('Edit'),
-      'href' => 'user/' . $element['#default_value'] . '/edit',
+      'href' => 'user/' . $value . '/edit',
     );
   }
   return $user_links;
@@ -147,6 +176,11 @@ function references_dialog_user_reference_edit_link($element, $widget_settings, 
  * Add link callback for user references.
  */
 function references_dialog_user_reference_add_link($element, $widget_settings, $field, $instance) {
+  // Hide add link for non-empty default value.
+  if (!empty($element['#default_value']) || !empty($element['#value'])) {
+    return array();
+  }
+  
   $user_links = array();
   // Check permissions for adding users.
   if (user_access('administer users')) {
@@ -162,10 +196,11 @@ function references_dialog_user_reference_add_link($element, $widget_settings, $
  * Edit link callback for entity references.
  */
 function references_dialog_entityreference_edit_link($element, $widget_settings, $field, $instance) {
-  if (isset($element['#default_value'])) {
+  //if (isset($element['#default_value'])) {
+    $raw_value = $element['#default_value'] ? $element['#default_value'] : $element['#value'];
     $entity_type = $field['settings']['target_type'];
     // Take "label (entity id)', match the id from parenthesis.
-    if (preg_match("/.+\((\d+)\)/", $element['#default_value'], $matches)) {
+    if (preg_match("/.+\((\d+)\)/", $raw_value, $matches)) {
         $value = $matches[1];
       }
     if (isset($value)) {
@@ -179,14 +214,19 @@ function references_dialog_entityreference_edit_link($element, $widget_settings,
         );
       }
     }
-  }
+ //}
   return array();
 }
 
 /**
  * Add link callback for entity references.
  */
-function references_dialog_entityreference_add_link($element, $widget_settings, $field, $instance) {
+function references_dialog_entityreference_add_link($element, $widget_settings, $field, $instance) {;
+  // Hide add link for non-empty default value.
+  if (!empty($element['#default_value']) || !empty($element['#value'])) {
+    return array();
+  }
+
   $add_links = array();
   $entity_type = $field['settings']['target_type'];
   $entity_info = entity_get_info($entity_type);
