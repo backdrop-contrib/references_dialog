@@ -639,6 +639,14 @@ function references_dialog_references_dialog_entity_admin_paths() {
       'edit' => 'media/[entity_id]/edit',
     );
   }
+  
+  // Bean provides add and edit paths for custom entities.
+  if (module_exists('bean')) {
+    $admin_paths['bean'] = array(
+      'add' => 'block/add/[bundle-sanitized]',
+      'edit' => 'block/[entity_id]/edit',
+    );
+  }
   return $admin_paths;
 }
 
