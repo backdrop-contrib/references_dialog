@@ -11,8 +11,7 @@
  */
 
 /**
- * Define a widget to which you want to attach add, search or edit
- * links.
+ * Define a widget to which you want to attach add, search or edit links.
  *
  * @return
  *   An array keyed by the widget you want to attach links to. This array
@@ -47,6 +46,20 @@ function hook_references_dialog_widgets() {
       ),
     ),
   );
+}
+
+/**
+ * Alter the widget definitions provided by hook_references_dialog_widgets().
+ *
+ * @param $widgets
+ *   The associative array of widget definitions.
+ *
+ * @see hook_references_dialog_widgets()
+ */
+function hook_references_dialog_widgets_alter(&$widgets) {
+  $search = $widgets['entityreference_autocomplete']['operations']['search'];
+  unset($widgets['entityreference_autocomplete']['operations']['search']);
+  $widgets['entityreference_autocomplete']['operations'] = array('search' => $search) + $widgets['entityreference_autocomplete']['operations'];
 }
 
 /**

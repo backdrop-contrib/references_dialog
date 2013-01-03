@@ -229,7 +229,9 @@ function references_dialog_field_attachable_query($view) {
  * Return an array of supported widgets.
  */
 function references_dialog_widgets() {
-  return module_invoke_all('references_dialog_widgets');
+  $widgets = module_invoke_all('references_dialog_widgets');
+  drupal_alter('references_dialog_widgets', $widgets);
+  return $widgets;
 }
 
 /**
