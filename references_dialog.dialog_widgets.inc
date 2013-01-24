@@ -273,11 +273,21 @@ function references_dialog_entityreference_link_helper($entity_type, $bundle = N
   else {
     $label = $info['label'];
   }
-  // We use entity_access here. We provide the bundle if this is a node type,
-  // since node_access expects that to be passed to it as the entity when you
-  // run node_access('create')
-  if (entity_access('create', $entity_type, $bundle) &&
-    $path = references_dialog_get_admin_path($entity_type, 'add', $bundle)) {
+
+  // entity_access() doesn't provide a generic bundle create op access check.
+  switch ($entity_type) {
+    case 'node':
+      $access = node_access('create', $bundle);
+      break;
+
+    default:
+      $access = entity_access('create', $entity_type);
+      break;
+  }
+
+  $path = references_dialog_get_admin_path($entity_type, 'add', $bundle);
+
+  if ($access && $path) {
     $link = array(
       'title' => t('Create @type', array('@type' => $label)),
       'href' => $path,
