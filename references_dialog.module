@@ -459,7 +459,7 @@ function references_dialog_init() {
  */
 function references_dialog_search_view($view_name, $display_name, $attachable) {
   $args = func_get_args();
-  $args = array_splice($args, 2);
+  $args = array_slice($args, 3);
   $view = views_get_view($view_name);
   // Find the entity that matches our base table.
   $entities = entity_get_info();
