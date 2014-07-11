@@ -71,6 +71,27 @@ function references_dialog_references_dialog_widgets() {
         ),
       ),
     ),
+    'references_dialog_term_reference' => array(
+      'element_type' => 'textfield',
+      'dialog_form' => 'term_reference_dialog_form',
+      'entity_type' => 'taxonomy_term',
+      'format' => '$label',
+      'views_query' => 'references_dialog_term_reference_views_query',
+      'operations' => array(
+        'search' => array(
+          'function' => 'references_dialog_get_field_search_links',
+          'title' => t('Search Dialog'),
+        ),
+        'edit' => array(
+          'function' => 'references_dialog_term_reference_edit_link',
+          'title' => t('Edit dialog'),
+        ),
+        'add' => array(
+          'function' => 'references_dialog_term_reference_add_link',
+          'title' => t('Add dialog'),
+        ),
+      ),
+    ),
   );
 }
 
@@ -325,4 +346,49 @@ function references_dialog_entityreference_views_query($view, $instance, $field)
 
 function references_dialog_entityreference_get_type($instance, $field) {
   return $field['settings']['target_type'];
+}
+
+/**
+ * Edit link callback for term references.
+ */
+function references_dialog_term_reference_edit_link($element, $widget_settings, $field, $instance) {
+  if (isset($element['#default_value'])) {
+    // Get Term ID from entity.
+    $term = taxonomy_term_load($element['#entity']->{$element['#field_name']}[$element['#language']][$element['#delta']]['tid']);
+    if ($term && user_access('administer taxonomy')) {
+      $path = taxonomy_term_uri($term);
+      return array(
+        array(
+          'title' => t('Edit'),
+          'href' => $path['path'] . '/edit'
+        ),
+      );
+    }
+  }
+  return array();
+}
+
+/**
+ * Add link callback for term references.
+ */
+function references_dialog_term_reference_add_link($element, $widget_settings, $field, $instance) {
+  $add_links = array();
+  if (user_access('administer taxonomy')) {
+    $add_links[] = array(
+      'title' => t('Create @type', array('@type' => strtoupper($field['settings']['allowed_values'][0]['vocabulary']))),
+      'href' => 'admin/structure/taxonomy/' . $field['settings']['allowed_values'][0]['vocabulary'] . '/add',
+    );
+  }
+  return $add_links;
+}
+
+/**
+ * View query callback for term references.
+ */
+function references_dialog_term_reference_views_query($view, $instance, $field) {
+  // We need to make sure that no entries that we can't add to our field shows
+  // up, so we need to limit the data here.
+  $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+  $types = array($vocabulary->vid);
+  $view->query->add_where(0, "$view->base_table.vid", $types);
 }
