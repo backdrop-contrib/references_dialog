@@ -326,7 +326,7 @@ function references_dialog_process_widget(&$element) {
   if (count($dialog_links)) {
     // We add a div directly into the markup here since we really need it in order
     // to make sure the javascript works.
-    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', $dialog_links) . '</div>';
+    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', array('links' => $dialog_links)) . '</div>';
   }
   return $element;
 }
@@ -346,7 +346,7 @@ function references_dialog_build_element($element) {
   if (count($dialog_links)) {
     // We add a div directly into the markup here since we really need it in order
     // to make sure the javascript works.
-    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', $dialog_links) . '</div>';
+    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', array('links' => $dialog_links)) . '</div>';
   }
   return $element;
 }
@@ -696,8 +696,8 @@ function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $en
  * Theme function for theming the links for opening
  * the references dialog.
  */
-function theme_references_dialog_links($links) {
-  return theme('links', array('links' => $links, 'attributes' => array('class' => 'references-dialog-links')));
+function theme_references_dialog_links($variables) {
+  return theme('links', array('links' => $variables['links'], 'attributes' => array('class' => array('references-dialog-links'))));
 }
 
 /**
