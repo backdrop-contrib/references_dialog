@@ -1,7 +1,8 @@
 name = References dialog
 description = Enhances references fields by adding dialogs for adding and creating entities.
 package = Fields
-core = 7.x
+backdrop = 1.x
+type = module
 dependencies[] = field
 dependencies[] = views
-files[] = views/references_dialog_plugin_display.inc
+;files[] = views/references_dialog_plugin_display.inc
