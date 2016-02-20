@@ -443,11 +443,28 @@ function references_dialog_close_on_redirect($entity, $entity_type) {
  */
 function references_dialog_init() {
   if (references_dialog_in_dialog()) {
-    if (module_exists('admin_menu')) {
-      module_invoke('admin_menu', 'suppress');
-    }
+    admin_bar_suppress(TRUE);
+    // Hack to provide "Content only" layout, since page.tpl.php template is not an option for backdrop
+    // see https://github.com/backdrop/backdrop-issues/issues/1483#issuecomment-169173412
+    $_SERVER['HTTP_ACCEPT'] = 'text/x-lightbox';
 
     drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
+  }
+}
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ *
+ * Adds minimal layout for theming the node form in a dialog.
+ */
+function references_dialog_form_node_form_alter(&$form, $form_state) {
+  if (arg(0) == 'node' && references_dialog_in_dialog()) {
+    $form['#prefix'] = '
+<div id="references-dialog-page"><div class="l-container">
+  <main class="l-content" role="main">
+';
+    $form['#suffix'] = '
+</main></div></div>
+';
   }
 }
 
