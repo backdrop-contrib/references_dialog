@@ -22,8 +22,8 @@ function references_dialog_element_info() {
  */
 function references_dialog_attached() {
   return array(
-    'js' => array(drupal_get_path('module', 'references_dialog') . '/js/references-dialog.js'),
-    'css' => array(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css'),
+    'js' => array(backdrop_get_path('module', 'references_dialog') . '/js/references-dialog.js'),
+    'css' => array(backdrop_get_path('module', 'references_dialog') . '/css/references-dialog-admin.css'),
     'library' => array(array('system', 'ui.dialog')),
   );
 }
@@ -84,7 +84,7 @@ function references_dialog_field_get_search_views(array $instance) {
  *   the name of the attachable to look for.
  */
 function references_dialog_get_search_views($attachable) {
-  $search_views = &drupal_static(__FUNCTION__, array());
+  $search_views = &backdrop_static(__FUNCTION__, array());
   if (!isset($search_views[$attachable])) {
     $search_views[$attachable] = array();
     // Get all views that has a references_dialog display.
@@ -103,7 +103,7 @@ function references_dialog_get_search_views($attachable) {
 }
 
 function references_dialog_get_applicable_views() {
-  $views = &drupal_static(__FUNCTION__, FALSE);
+  $views = &backdrop_static(__FUNCTION__, FALSE);
   if (!$views) {
     $views = cache_get('references_dialog_views');
     $views = !empty($views) ? $views->data : FALSE;
@@ -230,7 +230,7 @@ function references_dialog_field_attachable_query($view) {
  */
 function references_dialog_widgets() {
   $widgets = module_invoke_all('references_dialog_widgets');
-  drupal_alter('references_dialog_widgets', $widgets);
+  backdrop_alter('references_dialog_widgets', $widgets);
   return $widgets;
 }
 
@@ -448,7 +448,7 @@ function references_dialog_init() {
     // see https://github.com/backdrop/backdrop-issues/issues/1483#issuecomment-169173412
     $_SERVER['HTTP_ACCEPT'] = 'text/x-lightbox';
 
-    drupal_add_css(drupal_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
+    backdrop_add_css(backdrop_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
   }
 }
 /**
@@ -565,7 +565,7 @@ function references_dialog_close_on_submit() {
 function references_dialog_views_api() {
   return array(
     'api' => 3,
-    'path' => drupal_get_path('module', 'references_dialog') . '/views',
+    'path' => backdrop_get_path('module', 'references_dialog') . '/views',
   );
 }
 
@@ -586,7 +586,7 @@ function references_dialog_views_plugins() {
         'uses hook menu' => TRUE,
         'help topic' => 'references-dialog',
         'references_dialog display' => TRUE,
-        'path' => drupal_get_path('module', 'references_dialog') . '/views',
+        'path' => backdrop_get_path('module', 'references_dialog') . '/views',
       ),
     ),
   );
@@ -612,8 +612,8 @@ function references_dialog_redirect_page($entity_id, $entity_type) {
   // Add appropriate javascript that will be used by the parent page to
   // fill in the required data.
   if (isset($entity_id) && references_dialog_in_dialog() && isset($_GET['references-dialog-close'])) {
-    drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
-    drupal_add_js(array(
+    backdrop_add_js(backdrop_get_path('module', 'references_dialog') . '/js/references-dialog-child.js');
+    backdrop_add_js(array(
       'ReferencesDialog' => array(
         'entity_id' => $entity_id,
         'title' => $entity_title,
@@ -655,7 +655,7 @@ function references_dialog_references_dialog_entity_admin_paths() {
 
   // The media module adds an edit callback for media as well.
   // Note: this will probably not work until file_entity provides an access
-  // API, see http://drupal.org/node/1227706
+  // API, see http://backdrop.org/node/1227706
   if (module_exists('media')) {
     $admin_paths['file'] = array(
       'edit' => 'media/[entity_id]/edit',
@@ -682,7 +682,7 @@ function references_dialog_references_dialog_entity_admin_paths() {
  */
 function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $entity = NULL) {
   // Let's cache the paths.
-  $paths = &drupal_static(__FUNCTION__ , NULL);
+  $paths = &backdrop_static(__FUNCTION__ , NULL);
   if (!isset($paths)) {
     $paths = module_invoke_all('references_dialog_entity_admin_paths');
   }

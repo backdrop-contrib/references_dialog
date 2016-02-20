@@ -181,12 +181,12 @@ class references_dialog_plugin_display extends views_plugin_display {
     // display, and arguments should be set on the view.
     $this->view->build();
     if (!empty($this->view->build_info['fail'])) {
-      return drupal_not_found();
+      return backdrop_not_found();
     }
 
     $this->view->get_breadcrumb(TRUE);
     // And the title, which is much easier.
-    drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
+    backdrop_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
     $content = $this->view->render();
     return $content;
   }
@@ -219,8 +219,8 @@ class references_dialog_plugin_display extends views_plugin_display {
         'entity_type' => $entity_type,
       );
     }
-    drupal_add_js(drupal_get_path('module', 'references_dialog') . '/js/search-reference.js');
-    drupal_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
+    backdrop_add_js(backdrop_get_path('module', 'references_dialog') . '/js/search-reference.js');
+    backdrop_add_js(array('ReferencesDialog' => array('entities' => $js_result)), 'setting');
     return $output;
   }
 }

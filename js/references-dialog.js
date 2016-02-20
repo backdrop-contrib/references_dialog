@@ -2,7 +2,7 @@
 
   var $window = $(window);
 
-  Drupal.behaviors.referencesDialog = {
+  Backdrop.behaviors.referencesDialog = {
     attach: function (context, settings) {
       // Add appropriate classes on all fields that should have it. This is
       // necessary since we don't actually know what markup we are dealing with.
@@ -10,8 +10,8 @@
         $.each(settings.ReferencesDialog.fields, function (key, widget_settings) {
           $('.' + key + ' a.references-dialog-activate', context).click(function (e) {
             e.preventDefault();
-            Drupal.ReferencesDialog.open($(this).attr('href'), $(this).html());
-            Drupal.ReferencesDialog.entityIdReceived = function (entity_type, entity_id, label) {
+            Backdrop.ReferencesDialog.open($(this).attr('href'), $(this).html());
+            Backdrop.ReferencesDialog.entityIdReceived = function (entity_type, entity_id, label) {
               if (typeof widget_settings.format !== 'undefined') {
                 var value = widget_settings.format
                   .replace('$label', label)
@@ -25,7 +25,7 @@
                   entity_id: entity_id,
                   entity_type: entity_type
                 };
-                Drupal.ReferencesDialog.invokeCallback(widget_settings.callback_path, entity_info, widget_settings.callback_settings);
+                Backdrop.ReferencesDialog.invokeCallback(widget_settings.callback_path, entity_info, widget_settings.callback_settings);
               }
               // If we have a target, use that.
               else if (typeof widget_settings.target !== 'undefined') {
@@ -51,12 +51,12 @@
   /**
    * Our dialog object. Can be used to open a dialog to anywhere.
    */
-  Drupal.ReferencesDialog = {
+  Backdrop.ReferencesDialog = {
     dialog_open: false,
     open_dialog: null
   }
 
-  Drupal.ReferencesDialog.invokeCallback = function (callback, entity_info, settings) {
+  Backdrop.ReferencesDialog.invokeCallback = function (callback, entity_info, settings) {
     if (typeof settings == 'object') {
       entity_info.settings = settings;
     }
@@ -67,13 +67,13 @@
    * If this property is set to be a function, it
    * will be called when an entity is recieved from an overlay.
    */
-  Drupal.ReferencesDialog.entityIdReceived = null;
+  Backdrop.ReferencesDialog.entityIdReceived = null;
 
   /**
    * Open a dialog window.
    * @param string href the link to point to.
    */
-  Drupal.ReferencesDialog.open = function (href, title) {
+  Backdrop.ReferencesDialog.open = function (href, title) {
     if (!this.dialog_open) {
       // Add render references dialog, so that we know that we should be in a
       // dialog.
@@ -89,14 +89,14 @@
         resizable: false,
         position: ['center', 50],
         title: title,
-        close: function () { Drupal.ReferencesDialog.dialog_open = false; }
+        close: function () { Backdrop.ReferencesDialog.dialog_open = false; }
       }).width(window_width-10).height(window_height);
       $window.bind('resize scroll', function () {
         // Move the dialog the main window moves.
-        if (typeof Drupal.ReferencesDialog == 'object' && Drupal.ReferencesDialog.open_dialog != null) {
-          Drupal.ReferencesDialog.open_dialog.
+        if (typeof Backdrop.ReferencesDialog == 'object' && Backdrop.ReferencesDialog.open_dialog != null) {
+          Backdrop.ReferencesDialog.open_dialog.
             dialog('option', 'position', ['center', 10]);
-          Drupal.ReferencesDialog.setDimensions();
+          Backdrop.ReferencesDialog.setDimensions();
         }
       });
       this.dialog_open = true;
@@ -107,8 +107,8 @@
    * Set dimensions of the dialog dependning on the current winow size
    * and scroll position.
    */
-  Drupal.ReferencesDialog.setDimensions = function () {
-    if (typeof Drupal.ReferencesDialog == 'object') {
+  Backdrop.ReferencesDialog.setDimensions = function () {
+    if (typeof Backdrop.ReferencesDialog == 'object') {
       var window_width = $window.width() / 100*75;
       var window_height = $window.height() / 100*90;
       this.open_dialog.
@@ -122,7 +122,7 @@
    * Close the dialog and provide an entity id and a title
    * that we can use in various ways.
    */
-  Drupal.ReferencesDialog.close = function (entity_type, entity_id, title) {
+  Backdrop.ReferencesDialog.close = function (entity_type, entity_id, title) {
     this.open_dialog.dialog('close');
     this.open_dialog.dialog('destroy');
     this.open_dialog = null;
