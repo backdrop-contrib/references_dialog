@@ -382,25 +382,10 @@ function references_dialog_js_settings($id, array $settings) {
  */
 function references_dialog_theme() {
   return array(
-    'references_dialog_page' => array(
-      'render element' => 'page',
-      'template' => 'references-dialog-page',
-    ),
     'references_dialog_links' => array(
       'variables' => array('links' => NULL),
     ),
   );
-}
-
-/**
- * Process variables for references_dialog_page.
- */
-function template_process_references_dialog_page(&$variables) {
-  // Generate messages last in order to capture as many as possible for the
-  // current page.
-  if (!isset($variables['messages'])) {
-   $variables['messages'] = $variables['page']['#show_messages'] ? theme('status_messages') : '';
-  }
 }
 
 /**
@@ -527,18 +512,6 @@ function references_dialog_get_views_search_links($attachable) {
     ));
   }
   return $links;
-}
-
-/**
- * Implements hook_page_alter().
- */
-function references_dialog_page_alter(&$page) {
-  if (references_dialog_in_dialog()) {
-    unset($page['page_top']);
-    unset($page['page_bottom']);
-
-    $page['#theme'] = 'references_dialog_page';
-  }
 }
 
 /**
