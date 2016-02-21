@@ -1,5 +1,5 @@
 # References dialog
-This module extends reference fields like the user and node reference fields by adding links to add, edit and search for references through a dialog. This allows for a workflow where the user can create all the references to a node at the same time as she is creating it, a process which sometimes get's a bit backwards, when a user for instance needs to create all the facts for an article.
+This module extends reference fields like the user and node reference fields by adding links to add, edit and search for references through a dialog. This allows for a workflow where users can create any references at the same time they are creating a node, a process which sometimes get's a bit backwards, when a user for instance needs to create all the facts for an article.
 
 Installation
 
