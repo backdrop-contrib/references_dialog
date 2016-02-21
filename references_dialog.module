@@ -450,6 +450,7 @@ function references_dialog_form_node_form_alter(&$form, $form_state) {
     $form['#suffix'] = '
 </main></div></div>
 ';
+  $form['actions']['cancel']['#access'] = FALSE;
   }
 }
 
