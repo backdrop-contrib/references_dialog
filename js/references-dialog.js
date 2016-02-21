@@ -89,7 +89,12 @@
         resizable: false,
         position: ['center', 50],
         title: title,
-        close: function () { Backdrop.ReferencesDialog.dialog_open = false; }
+        close: function (event, ui) {
+          if (Backdrop.ReferencesDialog.dialog_open) {
+            Backdrop.ReferencesDialog.dialog_open = false;
+            Backdrop.ReferencesDialog.close();
+          }
+        }
       }).width(window_width-10).height(window_height);
       $window.bind('resize scroll', function () {
         // Move the dialog the main window moves.
@@ -126,11 +131,13 @@
     this.open_dialog.dialog('close');
     this.open_dialog.dialog('destroy');
     this.open_dialog = null;
-    this.dialog_open = false;
-    // Call our entityIdReceived function if we have one.
-    // this is used as an event.
-    if (typeof this.entityIdReceived == 'function') {
-      this.entityIdReceived(entity_type, entity_id, title);
+    if (this.dialog_open) {
+      this.dialog_open = false;
+      // Call our entityIdReceived function if we have one.
+      // this is used as an event.
+      if (typeof this.entityIdReceived == 'function') {
+        this.entityIdReceived(entity_type, entity_id, title);
+      }
     }
   }
 
