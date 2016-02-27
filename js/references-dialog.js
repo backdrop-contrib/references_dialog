@@ -128,17 +128,17 @@
    * that we can use in various ways.
    */
   Backdrop.ReferencesDialog.close = function (entity_type, entity_id, title) {
-    this.open_dialog.dialog('close');
-    this.open_dialog.dialog('destroy');
-    this.open_dialog = null;
     if (this.dialog_open) {
       this.dialog_open = false;
+      this.open_dialog.dialog('close');
       // Call our entityIdReceived function if we have one.
       // this is used as an event.
       if (typeof this.entityIdReceived == 'function') {
         this.entityIdReceived(entity_type, entity_id, title);
       }
     }
+    this.open_dialog.dialog('destroy');
+    this.open_dialog = null;
   }
 
 }(jQuery));
