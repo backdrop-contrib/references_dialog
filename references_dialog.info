@@ -3,5 +3,5 @@ description = Enhances references fields by adding dialogs for adding and creati
 package = Fields
 backdrop = 1.x
 type = module
-dependencies[] = references
+dependencies[] = field
 ;files[] = views/references_dialog_plugin_display.inc
