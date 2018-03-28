@@ -17,4 +17,4 @@ Looking for a maintainer.
 
 Ported to Backdrop by gifad.
 
-This module was originally written for Drupal (https://drupal.org/project/commentcloser). Drupal maintainers are: [WorldFallz](https://www.drupal.org/u/worldfallz), [rogical](https://www.drupal.org/u/rogical), [fabsor](https://www.drupal.org/u/fabsor).
+This module was originally written for Drupal (https://www.drupal.org/project/references_dialog). Drupal maintainers are: [WorldFallz](https://www.drupal.org/u/worldfallz), [rogical](https://www.drupal.org/u/rogical), [fabsor](https://www.drupal.org/u/fabsor).
