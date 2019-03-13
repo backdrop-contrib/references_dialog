@@ -4,4 +4,4 @@ package = Fields
 backdrop = 1.x
 type = module
 dependencies[] = field
-;files[] = views/references_dialog_plugin_display.inc
+dependencies[]= entity_plus
