@@ -43,6 +43,15 @@ function references_dialog_element_info_alter(&$info) {
 }
 
 /**
+ * Implements hook_autoload_info().
+ */
+function references_dialog_autoload_info() {
+  return array(
+    'references_dialog_plugin_display' => 'views/references_dialog_plugin_display.inc',
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function references_dialog_menu() {
