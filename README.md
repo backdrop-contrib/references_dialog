@@ -11,7 +11,7 @@ This project is GPL v2 software. See the LICENSE.txt file in this directory for 
 
 ## Current Maintainers
 
-Looking for a maintainer.
+[Robert Garrigos](https://github.com/robertgarrigos)
 
 ## Credits
 
