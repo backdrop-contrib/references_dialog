@@ -328,8 +328,6 @@ function references_dialog_process_widget(&$element) {
       $links = $settings['function']($element, $widget_settings, $field, $instance);
       foreach ($links as $link) {
         $link['attributes']['class'][] = $operation . '-dialog';
-        // Allow other modules to alter the link
-        backdrop_alter('references_dialog_link', $link, $element);
         $dialog_links[] = references_dialog_link($link);
       }
     }
