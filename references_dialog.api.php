@@ -102,5 +102,22 @@ function hook_references_dialog_search_attachables() {
 }
 
 /**
+ * Allow other modules to alter the link
+ *
+ * @param $link
+ *   The link array to be formed by l()
+ * @param $element
+ *    The element to which the widget is attached
+ */
+function hook_references_dialog_link_alter(&$link, $element) {
+  if ($element['#field_name'] == 'field_source') {
+    // This example adds the query string to prepopulate the form
+    $link['query'] = [
+      'edit[field_trasnslations][und][0][nid]' => '[nid:' . $element['#entity']->nid . ']',
+    ];
+  }
+}
+
+/**
  * @} End of "addtogroup hooks".
  */
