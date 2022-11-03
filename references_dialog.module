@@ -454,7 +454,7 @@ function references_dialog_init() {
 //  $config->set('menu_route_handler', 'menu_default_route_handler');
 
     // ultimately, if this gets in core...
-//  layout_suppress(TRUE);
+    layout_suppress(TRUE);
 
     backdrop_add_css(backdrop_get_path('module', 'references_dialog') . '/css/references-dialog-search.css');
   }
