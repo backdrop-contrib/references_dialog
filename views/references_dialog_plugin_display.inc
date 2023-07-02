@@ -211,7 +211,7 @@ class references_dialog_plugin_display extends views_plugin_display {
     foreach ($this->view->result as $row => $result) {
       $entity_ids[] = $result->{$this->view->base_field};
     }
-    $entities = entity_load($entity_type, $entity_ids);
+    $entities = entity_load_multiple($entity_type, $entity_ids);
     foreach ($this->view->result as $result) {
       $js_result[] = array(
         'entity_id' => $result->{$this->view->base_field},
