@@ -9,7 +9,7 @@
       // JQuery.each() to freak ut.'
       var selector = null;
       if ($('table.views-table').size() > 0) {
-        selector = $('table.views-table tbody tr');
+        selector = $('table.views-table tbody tr:not(.views-table-row-select-all)');
       }
       else if ($('table.views-view-grid').size() > 0) {
         selector = $('table.views-view-grid td');
@@ -22,6 +22,7 @@
       }
       selector.each(function(index) {
         $(this).click(function(e) {
+          e.preventDefault();
           // Ignore if the element is a link.
           if (e.target && e.target.nodeName && e.target.nodeName.toLowerCase() !== 'a') {
             // Fetch the entity from wherever it might be.
@@ -40,7 +41,7 @@
 
         // For links within the Views table, or those with a destination
         // parameter, open in a new window instead.
-        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table').size() > 0) {
+        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table tbody').size() > 0) {
           $(element).attr('target', '_blank');
           return;
         }
