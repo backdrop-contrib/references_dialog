@@ -22,6 +22,7 @@
       }
       selector.each(function(index) {
         $(this).click(function(e) {
+          e.preventDefault();
           // Ignore if the element is a link.
           if (e.target && e.target.nodeName && e.target.nodeName.toLowerCase() !== 'a') {
             // Fetch the entity from wherever it might be.
