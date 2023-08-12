@@ -40,7 +40,7 @@
 
         // For links within the Views table, or those with a destination
         // parameter, open in a new window instead.
-        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table').size() > 0) {
+        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table tbody').size() > 0) {
           $(element).attr('target', '_blank');
           return;
         }
