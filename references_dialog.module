@@ -238,8 +238,13 @@ function references_dialog_field_attachable_query($view) {
  * Return an array of supported widgets.
  */
 function references_dialog_widgets() {
-  $widgets = module_invoke_all('references_dialog_widgets');
-  backdrop_alter('references_dialog_widgets', $widgets);
+  $widgets = &backdrop_static(__FUNCTION__);
+
+  if ($widgets === NULL) {
+    $widgets = module_invoke_all('references_dialog_widgets');
+    backdrop_alter('references_dialog_widgets', $widgets);
+  }
+
   return $widgets;
 }
 
