@@ -9,7 +9,7 @@
       // JQuery.each() to freak ut.'
       var selector = null;
       if ($('table.views-table').size() > 0) {
-        selector = $('table.views-table tbody tr');
+        selector = $('table.views-table tbody tr:not(.views-table-row-select-all)');
       }
       else if ($('table.views-view-grid').size() > 0) {
         selector = $('table.views-view-grid td');
