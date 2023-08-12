@@ -32,6 +32,7 @@
                 var target = $('#' + widget_settings.target);
                 target.val(value);
                 target.change();
+                target.trigger('reference:update')
               }
               // If we have none of the above, we just insert the value in the item
               // that invoked this.
@@ -39,6 +40,7 @@
                 var key_el = $('#' + key);
                 key_el.val(value);
                 key_el.change();
+                key_el.trigger('reference:update')
               }
             }
             return false;
