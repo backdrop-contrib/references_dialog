@@ -137,7 +137,7 @@ function references_dialog_node_reference_add_link($element, $widget_settings, $
   foreach ($field['settings']['referenceable_types'] as $type => $active) {
     if ($active !== 0) {
       $node_type = node_type_load($type);
-      if (node_access('create', $node_type->type)) {
+      if ($node_type && node_access('create', $node_type->type)) {
         $add_links[] = array(
           'title' => t('Create @type', array('@type' => $node_type->name)),
           'href' => 'node/add/' . strtr($type, array('_' => '-')),
