@@ -1,9 +1,6 @@
 (function ($) {
   Backdrop.behaviors.referencesDialog = {
     attach: function (context, settings) {
-      // Make sure the overlay doesn't mess things up for us by unbinding it's
-      // event.
-      $(document).unbind('click.backdrop-overlay mouseup.backdrop-overlay');
       // Check what type of display we are dealing with.
       // We can't combine all of these, since that causes
       // JQuery.each() to freak ut.'
