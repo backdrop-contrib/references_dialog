@@ -159,7 +159,7 @@ function references_dialog_field_widget_info_alter(array &$info) {
 /**
  * Get instances appropriate for a search view on a particular entity type.
  * @param string $entity_type name of the entity type.
- * @return an array of appropriate instances.
+ * @return array of appropriate instances.
  */
 function references_dialog_get_search_view_attachables($entity_type = NULL) {
   $attachables = module_invoke_all('references_dialog_search_attachables');
@@ -220,7 +220,7 @@ function references_dialog_references_dialog_search_attachables() {
 }
 
 /**
- * This query is used by field referneces dialog attachables.
+ * This query is used by field references dialog attachables.
  * @param View $view
  *   The view to work with.
  */
@@ -529,7 +529,7 @@ function references_dialog_get_field_search_links($element, $widget_settings, $f
  * Get all views search links for an instance.
  * This function should be used by references dialog widgets that uses
  * views for it's search functionality.
- * @param type $instance
+ * @param $instance
  */
 function references_dialog_get_views_search_links($attachable) {
   $applicable_views = references_dialog_get_search_views($attachable);
@@ -818,7 +818,7 @@ function references_dialog_term_reference_autocomplete_validate($element, &$form
       // Collect candidate vocabularies.
       $vocabularies = array();
       foreach ($field['settings']['allowed_values'] as $tree) {
-        if ($vocabulary = taxonomy_vocabulary_machine_name_load($tree['vocabulary'])) {
+        if ($vocabulary = taxonomy_vocabulary_load($tree['vocabulary'])) {
           $vocabularies[$vocabulary->vid] = $vocabulary;
         }
       }

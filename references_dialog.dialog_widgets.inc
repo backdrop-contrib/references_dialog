@@ -388,7 +388,7 @@ function references_dialog_term_reference_add_link($element, $widget_settings, $
 function references_dialog_term_reference_views_query($view, $instance, $field) {
   // We need to make sure that no entries that we can't add to our field shows
   // up, so we need to limit the data here.
-  $vocabulary = taxonomy_vocabulary_machine_name_load($field['settings']['allowed_values'][0]['vocabulary']);
+  $vocabulary = taxonomy_vocabulary_load($field['settings']['allowed_values'][0]['vocabulary']);
   $types = array($vocabulary->vid);
   $view->query->add_where(0, "$view->base_table.vid", $types);
 }
