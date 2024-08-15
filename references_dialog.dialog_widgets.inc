@@ -356,7 +356,7 @@ function references_dialog_term_reference_edit_link($element, $widget_settings, 
     // Get Term ID from entity.
     $term = taxonomy_term_load($element['#entity']->{$element['#field_name']}[$element['#language']][$element['#delta']]['tid']);
     if ($term && user_access('administer taxonomy')) {
-      $path = taxonomy_term_uri($term);
+      $path = entity_uri('taxonomy_term', $term);
       return array(
         array(
           'title' => t('Edit'),
