@@ -77,38 +77,39 @@
    */
   Backdrop.ReferencesDialog.open = function (href, title) {
     if (!this.dialog_open) {
-      // Add render references dialog, so that we know that we should be in a
-      // dialog.
-      href += (href.indexOf('?') > -1 ? '&' : '?') + 'render=references-dialog';
-      // Get the current window size and do 75% of the width and 90% of the height.
-      // @todo Add settings for this so that users can configure this by themselves.
-      var window_width = $window.width() / 100*75;
-      var window_height = $window.height() / 100*90;
-      this.open_dialog = $('<iframe class="references-dialog-iframe" src="' + href + '"></iframe>').dialog({
-        width: window_width,
-        height: window_height,
-        modal: true,
-        resizable: false,
-        position: ['center', 50],
-        title: title,
-        close: function (event, ui) {
-          if (Backdrop.ReferencesDialog.dialog_open) {
-            Backdrop.ReferencesDialog.dialog_open = false;
-            Backdrop.ReferencesDialog.close();
-          }
-        }
-      }).width(window_width-10).height(window_height);
-      $window.bind('resize scroll', function () {
-        // Move the dialog the main window moves.
-        if (typeof Backdrop.ReferencesDialog == 'object' && Backdrop.ReferencesDialog.open_dialog != null) {
-          Backdrop.ReferencesDialog.open_dialog.
-            dialog('option', 'position', ['center', 10]);
-          Backdrop.ReferencesDialog.setDimensions();
-        }
-      });
-      this.dialog_open = true;
+        // Add render references dialog, so that we know that we should be in a dialog.
+        href += (href.indexOf('?') > -1 ? '&' : '?') + 'render=references-dialog';
+        // Get the current window size and do 75% of the width and 90% of the height.
+        var window_width = $window.width() * 0.75;
+        var window_height = $window.height() * 0.90;
+
+        // Create the dialog and center it explicitly
+        this.open_dialog = $('<iframe class="references-dialog-iframe" src="' + href + '"></iframe>').dialog({
+            width: window_width,
+            height: window_height,
+            modal: true,
+            resizable: false,
+            title: title,
+            position: { my: "center center", at: "center center", of: window }, // Center the dialog
+            close: function (event, ui) {
+                if (Backdrop.ReferencesDialog.dialog_open) {
+                    Backdrop.ReferencesDialog.dialog_open = false;
+                    Backdrop.ReferencesDialog.close();
+                }
+            }
+        }).width(window_width - 30).height(window_height - 42);
+
+        $window.bind('resize scroll', function () {
+            // Re-center the dialog when the window is resized or scrolled
+            if (Backdrop.ReferencesDialog.open_dialog != null) {
+                Backdrop.ReferencesDialog.open_dialog.dialog('option', 'position', { my: "center center", at: "center center", of: window });
+                Backdrop.ReferencesDialog.setDimensions();
+            }
+        });
+
+        this.dialog_open = true;
     }
-  }
+}
 
   /**
    * Set dimensions of the dialog dependning on the current winow size
@@ -121,7 +122,7 @@
       this.open_dialog.
         dialog('option', 'width', window_width).
         dialog('option', 'height', window_height).
-        width(window_width-10).height(window_height);
+        width(window_width-30).height(window_height - 42);
     }
   }
 
