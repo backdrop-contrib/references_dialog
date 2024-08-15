@@ -5,3 +5,4 @@ backdrop = 1.x
 type = module
 dependencies[] = field
 dependencies[]= entity_plus
+dependencies[]= references
