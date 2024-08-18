@@ -819,10 +819,10 @@ function references_dialog_term_reference_autocomplete_validate($element, &$form
       $vocabularies = array();
       foreach ($field['settings']['allowed_values'] as $tree) {
         if ($vocabulary = taxonomy_vocabulary_load($tree['vocabulary'])) {
-          $vocabularies[$vocabulary->vid] = $vocabulary;
+          $vocabularies[$vocabulary->machine_name] = $vocabulary->machine_name;
         }
       }
-      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($element['#value']), 'vid' => array_keys($vocabularies)))) {
+      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($element['#value']), 'vocabulary' => array_keys($vocabularies)))) {
         $term = array_pop($possibilities);
       }
     }
