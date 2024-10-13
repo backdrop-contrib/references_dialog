@@ -5,13 +5,13 @@
       // We can't combine all of these, since that causes
       // JQuery.each() to freak ut.'
       var selector = null;
-      if ($('table.views-table').size() > 0) {
+      if ($('table.views-table').length > 0) {
         selector = $('table.views-table tbody tr:not(.views-table-row-select-all)');
       }
-      else if ($('table.views-view-grid').size() > 0) {
+      else if ($('table.views-view-grid').length > 0) {
         selector = $('table.views-view-grid td');
       }
-      else if ($('.views-row').size() > 0) {
+      else if ($('.views-row').length > 0) {
         selector = $('.views-row');
       }
       else {
@@ -38,7 +38,7 @@
 
         // For links within the Views table, or those with a destination
         // parameter, open in a new window instead.
-        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table tbody').size() > 0) {
+        if (href.indexOf('destination=') >= 0 || $(element).parents('table.views-table tbody').length > 0) {
           $(element).attr('target', '_blank');
           return;
         }
