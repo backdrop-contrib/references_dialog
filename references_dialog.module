@@ -6,6 +6,43 @@
  */
 
 /**
+ * Implements hook_autoload_info().
+ */
+function references_dialog_autoload_info() {
+  return array(
+    'references_dialog_plugin_display' => 'views/references_dialog_plugin_display.inc',
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function references_dialog_menu() {
+  $items = array();
+  // This redirect callback is used when adding and editing content in
+  // the overlay. When content is created or edited, we are directed here,
+  // so we can act properly on entities.
+  $items['references-dialog/redirect/%/%'] = array(
+    'page callback' => 'references_dialog_redirect_page',
+    'page arguments' => array(2, 3),
+    'access callback' => 'references_dialog_redirect_access',
+    'access arguments' => array(2, 3),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function references_dialog_theme() {
+  return array(
+    'references_dialog_links' => array(
+      'variables' => array('links' => NULL),
+    ),
+  );
+}
+
+/**
  * Implements hook_element_info().
  */
 function references_dialog_element_info() {
@@ -40,32 +77,6 @@ function references_dialog_element_info_alter(&$info) {
       $info[$widget['element_type']]['#after_build'][] = 'references_dialog_process_widget';
     }
   }
-}
-
-/**
- * Implements hook_autoload_info().
- */
-function references_dialog_autoload_info() {
-  return array(
-    'references_dialog_plugin_display' => 'views/references_dialog_plugin_display.inc',
-  );
-}
-
-/**
- * Implements hook_menu().
- */
-function references_dialog_menu() {
-  $items = array();
-  // This redirect callback is used when adding and editing content in
-  // the overlay. When content is created or edited, we are directed here,
-  // so we can act properly on entities.
-  $items['references-dialog/redirect/%/%'] = array(
-    'page callback' => 'references_dialog_redirect_page',
-    'page arguments' => array(2, 3),
-    'access callback' => 'references_dialog_redirect_access',
-    'access arguments' => array(2, 3),
-  );
-  return $items;
 }
 
 /**
@@ -394,14 +405,14 @@ function references_dialog_js_settings($id, array $settings) {
 }
 
 /**
- * Implements hook_theme().
+ * Process variables for references_dialog_page.
  */
-function references_dialog_theme() {
-  return array(
-    'references_dialog_links' => array(
-      'variables' => array('links' => NULL),
-    ),
-  );
+function template_process_references_dialog_page(&$variables) {
+  // Generate messages last in order to capture as many as possible for the
+  // current page.
+  if (!isset($variables['messages'])) {
+   $variables['messages'] = $variables['page']['#show_messages'] ? theme('status_messages') : '';
+  }
 }
 
 /**
@@ -542,6 +553,19 @@ function references_dialog_get_views_search_links($attachable) {
   }
   return $links;
 }
+
+/**
+ * Implements hook_preprocess_page().
+  */
+function references_dialog_preprocess_page(&$variables) {
+
+  if (references_dialog_in_dialog()) {
+    unset($variables['page_bottom']);
+    $variables['page'] = '<div id="references-dialog-page">' . $variables['page'] . '</div>';
+    backdrop_add_js('file', '/js/search-reference.js',);
+  }
+}
+
 
 /**
  * Check if we are in a references dialog.
