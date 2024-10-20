@@ -152,8 +152,6 @@ class references_dialog_plugin_display extends views_plugin_display {
     return $items;
   }
 
-  function uses_exposed() { return TRUE; }
-
   /**
    * Override references_plugin_display, and
    * allow for other style types.
