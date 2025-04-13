@@ -550,7 +550,7 @@ function references_dialog_preprocess_page(&$variables) {
 
   if (references_dialog_in_dialog()) {
     $variables['page'] = '<div id="references-dialog-page">' . $variables['page'] . '</div>';
-    backdrop_add_js('file', '/js/search-reference.js',);
+    backdrop_add_js('file', '/js/search-reference.js');
   }
 }
 
