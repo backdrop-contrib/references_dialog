@@ -8,7 +8,7 @@
       // necessary since we don't actually know what markup we are dealing with.
       if (typeof settings.ReferencesDialog !== 'undefined') {
         $.each(settings.ReferencesDialog.fields, function (key, widget_settings) {
-          $('.' + key + ' a.references-dialog-activate', context).click(function (e) {
+          $('.' + key + ' a.references-dialog-activate', context).on('click', function (e) {
             e.preventDefault();
             Backdrop.ReferencesDialog.open($(this).attr('href'), $(this).html());
             Backdrop.ReferencesDialog.entityIdReceived = function (entity_type, entity_id, label) {
@@ -31,7 +31,7 @@
               else if (typeof widget_settings.target !== 'undefined') {
                 var target = $('#' + widget_settings.target);
                 target.val(value);
-                target.change();
+                target.trigger('change');
                 target.trigger('reference:update')
               }
               // If we have none of the above, we just insert the value in the item
@@ -39,8 +39,13 @@
               else {
                 var key_el = $('#' + key);
                 key_el.val(value);
-                key_el.change();
-                key_el.trigger('reference:update')
+                key_el.trigger('change');
+                key_el.trigger('reference:update');
+                key_el.closest('div.form-item').find('+ .dialog-links .add-dialog')
+                  .removeClass('add-dialog')
+                  .addClass('edit-dialog')
+                  .text(Backdrop.t('Edit'))
+                  .attr('href', '/' + entity_type + '/' + entity_id + '/edit');
               }
             }
             return false;
@@ -99,7 +104,7 @@
             }
         }).width(window_width - 30).height(window_height - 42);
 
-        $window.bind('resize scroll', function () {
+        $window.on('resize scroll', function () {
             // Re-center the dialog when the window is resized or scrolled
             if (Backdrop.ReferencesDialog.open_dialog != null) {
                 Backdrop.ReferencesDialog.open_dialog.dialog('option', 'position', { my: "center center", at: "center center", of: window });
