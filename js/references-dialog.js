@@ -44,7 +44,8 @@
                 key_el.closest('div.form-item').find('+ .dialog-links .add-dialog')
                   .removeClass('add-dialog')
                   .addClass('edit-dialog')
-                  .text(Backdrop.t('Edit'))
+                  .text(Backdrop.t('Edit'));
+                key_el.closest('div.form-item').find('+ .dialog-links .edit-dialog')
                   .attr('href', '/' + entity_type + '/' + entity_id + '/edit');
               }
             }
