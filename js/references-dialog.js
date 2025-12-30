@@ -8,9 +8,10 @@
       // necessary since we don't actually know what markup we are dealing with.
       if (typeof settings.ReferencesDialog !== 'undefined') {
         $.each(settings.ReferencesDialog.fields, function (key, widget_settings) {
-          $('.' + key + ' a.references-dialog-activate', context).on('click', function (e) {
+          $('.' + key, context).on('click', 'a.references-dialog-activate', function (e) {
             e.preventDefault();
-            Backdrop.ReferencesDialog.open($(this).attr('href'), $(this).html());
+            var $activateLink = $(this);
+            Backdrop.ReferencesDialog.open($activateLink.attr('href'), $activateLink.html());
             Backdrop.ReferencesDialog.entityIdReceived = function (entity_type, entity_id, label) {
               if (typeof widget_settings.format !== 'undefined') {
                 var value = widget_settings.format
@@ -41,12 +42,31 @@
                 key_el.val(value);
                 key_el.trigger('change');
                 key_el.trigger('reference:update');
-                key_el.closest('div.form-item').find('+ .dialog-links .add-dialog')
-                  .removeClass('add-dialog')
+              }
+              const editWidgetActive = $activateLink.closest('.dialog-links').data('edit');
+              // If this is an add or search widget, we need to update the edit link.
+              const editPath = $activateLink.closest('.dialog-links').data('edit-path').replace('ENTITY_ID', entity_id);
+              if ($activateLink.hasClass('add-dialog') && editWidgetActive == true) {
+                // Update the "Create" link to become an "Edit" link after entity is selected.
+                $activateLink.removeClass('add-dialog')
                   .addClass('edit-dialog')
                   .text(Backdrop.t('Edit'));
-                key_el.closest('div.form-item').find('+ .dialog-links .edit-dialog')
-                  .attr('href', '/' + entity_type + '/' + entity_id + '/edit');
+                $activateLink.attr('href', editPath);
+              }
+              else if ($activateLink.hasClass('search-dialog') && editWidgetActive == true) {
+                // Leave the search link alone but update the sibling link.
+                if ($activateLink.closest('.dialog-links').find('.references-dialog-links a.edit-dialog').length === 0) {
+                  // There is no edit link yet, so we need to create it.
+                  $editLink = "<li><a class='references-dialog-activate edit-dialog' href='" + editPath + "'>" + Backdrop.t('Edit') + "</a></li>";
+                  $activateLink.closest('.dialog-links').find('.references-dialog-links').prepend($editLink);
+                }
+                else {
+                  $activateLink.closest('.dialog-links').find('.references-dialog-links a.edit-dialog').attr('href', editPath);
+                }
+              }
+              if (editWidgetActive == true) {
+                // We should have an edit link now, so we can remove any add links.
+                $activateLink.closest('.dialog-links').find('.references-dialog-links a.add-dialog').remove();
               }
             }
             return false;
