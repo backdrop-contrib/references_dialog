@@ -318,7 +318,6 @@ function references_dialog_process_widget(&$element) {
   if (!isset($element['#entity_type'])) {
     return $element;
   }
-  $item = $element['#value'];
   $field = field_info_field($element['#field_name']);
   $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
 
@@ -337,7 +336,6 @@ function references_dialog_process_widget(&$element) {
   $element['#attached']['css'][] = $attached['css'][0];
   $element['#attached']['library'][] = $attached['library'][0];
 
-  $link_options = array('attributes' => array('class' => array('references-dialog-activate')));
   $dialog_links = array();
   foreach ($dialog_widget['operations'] as $operation => $settings) {
     if (isset($widget_settings['references_dialog_' . $operation]) && $widget_settings['references_dialog_' . $operation]) {
@@ -352,8 +350,14 @@ function references_dialog_process_widget(&$element) {
   }
   if (count($dialog_links)) {
     // We add a div directly into the markup here since we really need it in order
-    // to make sure the javascript works.
-    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '">' . theme('references_dialog_links', array('links' => $dialog_links)) . '</div>';
+    // to make sure the javascript works. Adding the edit path as a data attribute
+    // allows us to update the edit link with JS.
+    $target_entity_type = $field['settings']['target_type'];
+    $edit_path = (!empty($instance['widget']['settings']['references_dialog_edit'])) ? ' data-edit-path="' . url(str_replace('[entity_id]', 'ENTITY_ID', references_dialog_get_admin_path($target_entity_type, 'edit') )) . '"' : '';
+    $allow_edit = (!empty($instance['widget']['settings']['references_dialog_edit'])) ? ' data-edit="true"' : '';
+    $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '"' . $allow_edit . $edit_path . '>' . theme('references_dialog_links', array(
+      'links' => $dialog_links,
+    )) . '</div>';
   }
   return $element;
 }
@@ -688,11 +692,17 @@ function references_dialog_references_dialog_entity_admin_paths() {
 
 /**
  * Get the admin path (edit/add) page for a particular entity
- * @param string $entity_type the entity type
- * @param string $op Which operation to perform. Either "edit" or "add".
- * @param string $bundle The bundle to use.
- * @param mixed $entity The entity to edit. This is only used with the "edit" operation.
- * @return string The path where the entity can be edited or created.
+ * @param string $entity_type
+ *   The entity type.
+ * @param string $op
+ *   Which operation to perform. Either "edit" or "add".
+ * @param string $bundle
+ *   The bundle to use.
+ * @param mixed $entity
+ *   The entity to edit. This is only used with the "edit" operation.
+ * @return string|bool
+ *   The path where the entity can be edited or created, or
+ *   FALSE if no path is available.
  */
 function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $entity = NULL) {
   // Let's cache the paths.
@@ -728,7 +738,12 @@ function references_dialog_get_admin_path($entity_type, $op, $bundle = NULL, $en
  * the references dialog.
  */
 function theme_references_dialog_links($variables) {
-  return theme('links', array('links' => $variables['links'], 'attributes' => array('class' => array('references-dialog-links'))));
+  return theme('links', array(
+    'links' => $variables['links'],
+    'attributes' => array(
+      'class' => array('references-dialog-links'),
+    ),
+  ));
 }
 
 /**

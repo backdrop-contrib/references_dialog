@@ -19,7 +19,7 @@ function references_dialog_references_dialog_widgets() {
       'operations' => array(
         'search' => array(
           'function' => 'references_dialog_get_field_search_links',
-          'title' => t('Search Dialog'),
+          'title' => t('Search dialog'),
         ),
         'edit' => array(
           'function' => 'references_dialog_node_reference_edit_link',
@@ -38,7 +38,7 @@ function references_dialog_references_dialog_widgets() {
       'operations' => array(
         'search' => array(
           'function' => 'references_dialog_get_field_search_links',
-          'title' => t('Search Dialog'),
+          'title' => t('Search dialog'),
         ),
         'edit' => array(
           'function' => 'references_dialog_user_reference_edit_link',
@@ -67,7 +67,7 @@ function references_dialog_references_dialog_widgets() {
         ),
         'search' => array(
           'function' => 'references_dialog_get_field_search_links',
-          'title' => t('Search Dialog'),
+          'title' => t('Search dialog'),
         ),
       ),
     ),
@@ -80,7 +80,7 @@ function references_dialog_references_dialog_widgets() {
       'operations' => array(
         'search' => array(
           'function' => 'references_dialog_get_field_search_links',
-          'title' => t('Search Dialog'),
+          'title' => t('Search dialog'),
         ),
         'edit' => array(
           'function' => 'references_dialog_term_reference_edit_link',
@@ -116,7 +116,7 @@ function references_dialog_node_reference_edit_link($element, $widget_settings, 
       return array(
         array(
           'title' => t('Edit'),
-          'href' => 'node/' . $value . '/edit'
+          'href' => 'node/' . $value . '/edit',
         ),
       );
     }
@@ -207,7 +207,7 @@ function references_dialog_user_reference_add_link($element, $widget_settings, $
   if (user_access('administer users')) {
     $user_links[] = array(
       'title' => t('Create user'),
-      'href' => 'admin/people/create'
+      'href' => 'admin/people/create',
     );
   }
   return $user_links;
@@ -217,25 +217,23 @@ function references_dialog_user_reference_add_link($element, $widget_settings, $
  * Edit link callback for entity references.
  */
 function references_dialog_entityreference_edit_link($element, $widget_settings, $field, $instance) {
-  //if (isset($element['#default_value'])) {
-    $raw_value = $element['#default_value'] ? $element['#default_value'] : $element['#value'];
-    $entity_type = $field['settings']['target_type'];
-    // Take "label (entity id)', match the id from parenthesis.
-    if (preg_match("/.+\((\d+)\)/", $raw_value, $matches)) {
-        $value = $matches[1];
-      }
-    if (isset($value)) {
-      $entity = current(entity_load($entity_type, array($value)));
-      if (entity_access('update', $entity_type, $entity)) {
-        return array(
-          array(
-            'title' => t('Edit'),
-            'href' => references_dialog_get_admin_path($entity_type, 'edit', NULL, $entity),
-          ),
-        );
-      }
+  $raw_value = $element['#default_value'] ? $element['#default_value'] : $element['#value'];
+  $entity_type = $field['settings']['target_type'];
+  // Take "label (entity id)', match the id from parenthesis.
+  if (preg_match("/.+\((\d+)\)/", $raw_value, $matches)) {
+    $value = $matches[1];
+  }
+  if (isset($value)) {
+    $entity = current(entity_load($entity_type, array($value)));
+    if (entity_access('update', $entity_type, $entity)) {
+      return array(
+        array(
+          'title' => t('Edit'),
+          'href' => references_dialog_get_admin_path($entity_type, 'edit', NULL, $entity),
+        ),
+      );
     }
- //}
+  }
   return array();
 }
 
@@ -285,6 +283,9 @@ function references_dialog_entityreference_add_link($element, $widget_settings, 
   return $add_links;
 }
 
+/**
+ * Helper function to generate entityreference add links.
+ */
 function references_dialog_entityreference_link_helper($entity_type, $bundle = NULL) {
   $wrapper = entity_metadata_wrapper($entity_type, NULL, array('bundle' => $bundle));
   $info = $wrapper->entityInfo();
@@ -344,6 +345,9 @@ function references_dialog_entityreference_views_query($view, $instance, $field)
   }
 }
 
+/**
+ * Type callback for entity references.
+ */
 function references_dialog_entityreference_get_type($instance, $field) {
   return $field['settings']['target_type'];
 }
@@ -360,7 +364,7 @@ function references_dialog_term_reference_edit_link($element, $widget_settings, 
       return array(
         array(
           'title' => t('Edit'),
-          'href' => $path['path'] . '/edit'
+          'href' => $path['path'] . '/edit',
         ),
       );
     }
