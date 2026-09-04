@@ -305,6 +305,14 @@ function references_dialog_entityreference_link_helper($entity_type, $bundle = N
       $access = node_access('create', $bundle);
       break;
 
+    case 'taxonomy_term':
+      // entity_access() cannot be given a bundle for the "create" op, so it
+      // falls back to TaxonomyTerm::createAccess(NULL), which only grants to
+      // 'administer taxonomy'. Check the vocabulary instead, so that the per
+      // vocabulary "create terms in ..." permission is honoured too.
+      $access = isset($bundle) ? taxonomy_term_access('create', $bundle) : user_access('administer taxonomy');
+      break;
+
     default:
       $access = entity_access('create', $entity_type);
       break;
@@ -362,7 +370,9 @@ function references_dialog_term_reference_edit_link($element, $widget_settings, 
   if (isset($element['#default_value'])) {
     // Get Term ID from entity.
     $term = taxonomy_term_load($element['#entity']->{$element['#field_name']}[$element['#language']][$element['#delta']]['tid']);
-    if ($term && user_access('administer taxonomy')) {
+    // taxonomy_term_access() grants access to users with 'administer taxonomy'
+    // as well as to those with "edit terms in <vocabulary>".
+    if ($term && taxonomy_term_access('update', $term)) {
       $path = entity_uri('taxonomy_term', $term);
       return array(
         array(
@@ -380,11 +390,25 @@ function references_dialog_term_reference_edit_link($element, $widget_settings, 
  */
 function references_dialog_term_reference_add_link($element, $widget_settings, $field, $instance) {
   $add_links = array();
-  if (user_access('administer taxonomy')) {
-    $add_links[] = array(
-      'title' => t('Create @type', array('@type' => strtoupper($field['settings']['allowed_values'][0]['vocabulary']))),
-      'href' => 'admin/structure/taxonomy/' . $field['settings']['allowed_values'][0]['vocabulary'] . '/add',
-    );
+  // Offer a link for every vocabulary the field allows and the user may create
+  // terms in, rather than assuming the first one and full taxonomy admin.
+  foreach ($field['settings']['allowed_values'] as $tree) {
+    if (empty($tree['vocabulary'])) {
+      continue;
+    }
+    $vocabulary = taxonomy_vocabulary_load($tree['vocabulary']);
+    // taxonomy_term_access() grants access to users with 'administer taxonomy'
+    // as well as to those with "create terms in <vocabulary>".
+    if (!$vocabulary || !taxonomy_term_access('create', $vocabulary->machine_name)) {
+      continue;
+    }
+    $path = references_dialog_get_admin_path('taxonomy_term', 'add', $vocabulary->machine_name);
+    if ($path) {
+      $add_links[] = array(
+        'title' => t('Create @type', array('@type' => $vocabulary->name)),
+        'href' => $path,
+      );
+    }
   }
   return $add_links;
 }
