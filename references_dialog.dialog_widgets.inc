@@ -75,7 +75,10 @@ function references_dialog_references_dialog_widgets() {
       'element_type' => 'textfield',
       'dialog_form' => 'term_reference_dialog_form',
       'entity_type' => 'taxonomy_term',
-      'format' => '$label',
+      // Include the term ID, like the node and user reference widgets do, so
+      // that the value inserted by the dialog is unambiguous and matches what
+      // the autocomplete callback produces.
+      'format' => '$label [tid: $entity_id]',
       'views_query' => 'references_dialog_term_reference_views_query',
       'operations' => array(
         'search' => array(
