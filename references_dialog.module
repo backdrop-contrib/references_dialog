@@ -28,7 +28,105 @@ function references_dialog_menu() {
     'access callback' => 'references_dialog_redirect_access',
     'access arguments' => array(2, 3),
   );
+  // Autocomplete callback for the term reference widget. The core callback at
+  // 'taxonomy/autocomplete' cannot be used here: it is built for the tagging
+  // widget, where a textfield holds a comma separated list of names, so it
+  // returns names containing a comma or a quote in their quoted form. This
+  // widget holds a single term per textfield and identifies it by ID.
+  // The typed string is appended by the autocomplete JavaScript and arrives as
+  // a trailing path component.
+  $items['references-dialog/autocomplete/taxonomy/%/%/%'] = array(
+    'title' => 'References Dialog term autocomplete',
+    'page callback' => 'references_dialog_taxonomy_autocomplete',
+    'page arguments' => array(3, 4, 5),
+    'delivery callback' => 'backdrop_json_deliver',
+    'access callback' => 'references_dialog_taxonomy_autocomplete_access',
+    'access arguments' => array(3, 4, 5),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
+}
+
+/**
+ * Access callback for the term reference autocomplete.
+ *
+ * @param string $entity_type
+ *   The entity type the field instance belongs to.
+ * @param string $bundle
+ *   The bundle the field instance belongs to.
+ * @param string $field_name
+ *   The name of the field.
+ *
+ * @return bool
+ *   TRUE if the user may use this autocomplete callback.
+ */
+function references_dialog_taxonomy_autocomplete_access($entity_type, $bundle, $field_name) {
+  if (!user_access('access content')) {
+    return FALSE;
+  }
+  $instance = field_info_instance($entity_type, $field_name, $bundle);
+  return !empty($instance) && $instance['widget']['type'] === 'references_dialog_term_reference';
+}
+
+/**
+ * Page callback: autocompletes term names for the term reference widget.
+ *
+ * Matches are keyed by "Term name [tid: n]" so that the submitted value
+ * identifies the term by ID. That makes names containing a comma or a quote
+ * work without any escaping, and keeps two terms sharing the same name apart.
+ *
+ * @param string $entity_type
+ *   The entity type the field instance belongs to.
+ * @param string $bundle
+ *   The bundle the field instance belongs to.
+ * @param string $field_name
+ *   The name of the field.
+ * @param string $string
+ *   The string typed by the user.
+ *
+ * @return array
+ *   Matches, delivered as JSON.
+ */
+function references_dialog_taxonomy_autocomplete($entity_type, $bundle, $field_name, $string = '') {
+  $matches = array();
+  $field = field_info_field($field_name);
+  $instance = field_info_instance($entity_type, $field_name, $bundle);
+  $string = trim($string);
+
+  if (!$field || $field['type'] !== 'taxonomy_term_reference' || $string === '') {
+    return $matches;
+  }
+
+  $vocabularies = array();
+  foreach ($field['settings']['allowed_values'] as $tree) {
+    $vocabularies[] = $tree['vocabulary'];
+  }
+  if (empty($vocabularies)) {
+    return $matches;
+  }
+
+  // Honour the "Autocomplete matching" widget setting, which the core callback
+  // silently ignored.
+  $match = isset($instance['widget']['settings']['autocomplete_match']) ? $instance['widget']['settings']['autocomplete_match'] : 'contains';
+  $like = ($match === 'starts_with') ? db_like($string) . '%' : '%' . db_like($string) . '%';
+
+  $query = db_select('taxonomy_term_data', 't');
+  $query->addTag('translatable');
+  $query->addTag('taxonomy_term_access');
+  $terms = $query
+    ->fields('t', array('tid', 'name'))
+    ->condition('t.vocabulary', $vocabularies)
+    ->condition('t.name', $like, 'LIKE')
+    ->orderBy('t.name')
+    ->range(0, 10)
+    ->execute()
+    ->fetchAllKeyed();
+
+  foreach ($terms as $tid => $name) {
+    $matches[references_dialog_encode_term_value($name, $tid)] = check_plain($name);
+  }
+
+  return $matches;
 }
 
 /**
@@ -756,7 +854,6 @@ function references_dialog_field_widget_info() {
       'field types' => array('taxonomy_term_reference'),
       'settings'    => array(
         'size' => 60,
-        'autocomplete_path' => 'taxonomy/autocomplete',
         'autocomplete_match' => 'starts_with',
       ),
     ),
@@ -800,17 +897,17 @@ function references_dialog_field_widget_settings_form($field, $instance) {
 function references_dialog_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   switch ($instance['widget']['type']) {
     case 'references_dialog_term_reference':
-      if (isset($items[$delta]['tid'])) {
-        $term = taxonomy_term_load($items[$delta]['tid']);
-        $value = $term->name;
-      }
-      else {
-        $value = NULL;
+      $value = NULL;
+      // Show the term ID along with the name, so that the value submitted back
+      // identifies the term unambiguously. taxonomy_term_load() can return
+      // FALSE if the term has been deleted since the entity was saved.
+      if (isset($items[$delta]['tid']) && ($term = taxonomy_term_load($items[$delta]['tid']))) {
+        $value = references_dialog_encode_term_value($term->name, $term->tid);
       }
       $element += array(
         '#type' => 'textfield',
         '#default_value' => $value,
-        '#autocomplete_path' => $instance['widget']['settings']['autocomplete_path'] . '/' . $field['field_name'],
+        '#autocomplete_path' => 'references-dialog/autocomplete/taxonomy/' . $instance['entity_type'] . '/' . $instance['bundle'] . '/' . $field['field_name'],
         '#size' => $instance['widget']['settings']['size'],
         '#maxlength' => NULL,
         '#element_validate' => array('references_dialog_term_reference_autocomplete_validate'),
@@ -822,43 +919,95 @@ function references_dialog_field_widget_form(&$form, &$form_state, $field, $inst
 }
 
 /**
+ * Builds the textfield value that represents a term.
+ *
+ * @param string $name
+ *   The term name.
+ * @param int $tid
+ *   The term ID.
+ *
+ * @return string
+ *   A value in the form "Term name [tid: n]".
+ */
+function references_dialog_encode_term_value($name, $tid) {
+  return $name . ' [tid: ' . $tid . ']';
+}
+
+/**
+ * Decodes a term name that was encoded as a tag.
+ *
+ * Only used as a fallback, for values typed by hand and for values produced by
+ * the core 'taxonomy/autocomplete' callback, which this widget used before it
+ * started identifying terms by ID. That callback is built for the core tagging
+ * widget, where several terms are entered as a comma separated list, so term
+ * names containing a comma or a double quote come back wrapped in double
+ * quotes with inner quotes doubled (see taxonomy_autocomplete() and
+ * backdrop_explode_tags()).
+ *
+ * @param string $value
+ *   The raw value submitted by the textfield.
+ *
+ * @return string
+ *   The plain term name.
+ */
+function references_dialog_decode_term_name($value) {
+  $value = trim($value);
+  if (backdrop_strlen($value) > 1 && substr($value, 0, 1) === '"' && substr($value, -1) === '"') {
+    $value = str_replace('""', '"', substr($value, 1, -1));
+  }
+  return trim($value);
+}
+
+/**
  * Form element validate handler for taxonomy term autocomplete element.
  */
 function references_dialog_term_reference_autocomplete_validate($element, &$form_state) {
   // Autocomplete widgets do not send their tids in the form, so we must detect
-  // them here and process them independently.
-  $value = array();
-  if ($element['#value']) {
+  // them here and process them independently. An empty value is set to NULL,
+  // not to an empty array: taxonomy_field_is_empty() casts the tid to a string
+  // and would raise "Array to string conversion".
+  $value = NULL;
+
+  if (is_string($element['#value']) && trim($element['#value']) !== '') {
     $term = FALSE;
     $field = field_widget_field($element, $form_state);
     $instance = field_widget_instance($element, $form_state);
-    // Check whether we have an explicit "[tid:n]" input.
-    preg_match('/^(?:\s*|(.*) )?\[\s*tid\s*:\s*(\d+)\s*\]$/', $element['#value'], $matches);
-    if (!empty($matches)) {
-      // Explicit tid.
-      list(, $term_name, $tid) = $matches;
-      if (!empty($term_name)) {
-        $term = taxonomy_term_load($tid);
+
+    // Collect candidate vocabularies.
+    $vocabularies = array();
+    foreach ($field['settings']['allowed_values'] as $tree) {
+      if ($vocabulary = taxonomy_vocabulary_load($tree['vocabulary'])) {
+        $vocabularies[$vocabulary->machine_name] = $vocabulary->machine_name;
+      }
+    }
+
+    // Check whether we have an explicit "[tid: n]" input, which is what both
+    // the autocomplete callback and the search dialog produce.
+    if (preg_match('/^(?:\s*|(.*) )?\[\s*tid\s*:\s*(\d+)\s*\]$/', $element['#value'], $matches)) {
+      $term = taxonomy_term_load($matches[2]);
+      // Do not accept a term outside the vocabularies allowed by the field.
+      if ($term && !isset($vocabularies[$term->vocabulary])) {
+        $term = FALSE;
       }
     }
     else {
-      // Collect candidate vocabularies.
-      $vocabularies = array();
-      foreach ($field['settings']['allowed_values'] as $tree) {
-        if ($vocabulary = taxonomy_vocabulary_load($tree['vocabulary'])) {
-          $vocabularies[$vocabulary->machine_name] = $vocabulary->machine_name;
-        }
-      }
-      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($element['#value']), 'vocabulary' => array_keys($vocabularies)))) {
+      // Fall back to a lookup by name, for names typed by hand and for values
+      // left over from the core autocomplete callback this widget used to
+      // point at. Ambiguous when two terms share a name, which is exactly what
+      // the "[tid: n]" form above avoids.
+      $term_name = references_dialog_decode_term_name($element['#value']);
+      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => $term_name, 'vocabulary' => array_keys($vocabularies)))) {
         $term = array_pop($possibilities);
       }
     }
+
     if ($term) {
       $value = $term->tid;
     }
     else {
-      form_error($element, t('%name: found no valid post for this value.', array('%name' => $instance['label'])));
+      form_error($element, t('%name: found no valid term for this value.', array('%name' => $instance['label'])));
     }
   }
+
   form_set_value($element, $value, $form_state);
 }
