@@ -45,7 +45,10 @@
               }
               const editWidgetActive = $activateLink.closest('.dialog-links').data('edit');
               // If this is an add or search widget, we need to update the edit link.
-              const editPath = $activateLink.closest('.dialog-links').data('edit-path').replace('ENTITY_ID', entity_id);
+              // The attribute is absent when the referenced entity type has no
+              // edit path, so do not assume it is there.
+              const editPathTemplate = $activateLink.closest('.dialog-links').data('edit-path');
+              const editPath = editPathTemplate ? editPathTemplate.replace('ENTITY_ID', entity_id) : '';
               if ($activateLink.hasClass('add-dialog') && editWidgetActive == true) {
                 // Update the "Create" link to become an "Edit" link after entity is selected.
                 $activateLink.removeClass('add-dialog')

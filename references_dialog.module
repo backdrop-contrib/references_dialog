@@ -306,14 +306,8 @@ function references_dialog_references_dialog_search_attachables() {
         $instance = field_info_instance($entity_type, $field_name, $bundle_name);
         $widget_type = $instance['widget']['type'];
         if (in_array($widget_type, array_keys($dialog_widgets)) && $instance['widget']['settings']['references_dialog_search']) {
-          // If the entity type is specified, in the declaration, add it here.
           $dialog_widget = $dialog_widgets[$widget_type];
-          if (isset($dialog_widget['entity_type'])) {
-            $attachable_type = $dialog_widget['entity_type'];
-          }
-          elseif (isset($dialog_widgets[$instance['widget']['type']]['type_callback'])) {
-            $attachable_type = $dialog_widget['type_callback']($instance, $field);
-          }
+          $attachable_type = references_dialog_widget_entity_type($dialog_widget, $instance, $field);
           if (isset($attachable_type)) {
             $applicable_instances[$attachable_type][$entity_type . ':' . $field_name . ':' . $bundle_name] = array(
               'label' => $instance['bundle'] . ': ' . $instance['label'],
@@ -410,6 +404,41 @@ function references_dialog_search_access($entity_type, $field_name, $bundle_name
 }
 
 /**
+ * Returns the entity type that a dialog widget references.
+ *
+ * Only entity reference fields carry a 'target_type' setting. Legacy
+ * node_reference and user_reference fields, and taxonomy term reference
+ * fields, do not, so for those the entity type comes from the widget
+ * definition in hook_references_dialog_widgets().
+ *
+ * @param array $dialog_widget
+ *   A dialog widget definition, as returned by references_dialog_widgets().
+ * @param array $instance
+ *   The field instance.
+ * @param array $field
+ *   The field definition.
+ *
+ * @return string|null
+ *   The entity type the widget references, or NULL if it cannot be
+ *   determined.
+ */
+function references_dialog_widget_entity_type(array $dialog_widget, array $instance, array $field) {
+  // Declared directly by the widget: node, user, taxonomy_term.
+  if (isset($dialog_widget['entity_type'])) {
+    return $dialog_widget['entity_type'];
+  }
+  // Resolved at runtime, for widgets that can point at several entity types.
+  if (isset($dialog_widget['type_callback']) && is_callable($dialog_widget['type_callback'])) {
+    return $dialog_widget['type_callback']($instance, $field);
+  }
+  // Last resort, for third party widgets that declare neither.
+  if (isset($field['settings']['target_type'])) {
+    return $field['settings']['target_type'];
+  }
+  return NULL;
+}
+
+/**
  * Add our references dialog fields to the existing element
  */
 function references_dialog_process_widget(&$element) {
@@ -450,9 +479,19 @@ function references_dialog_process_widget(&$element) {
     // We add a div directly into the markup here since we really need it in order
     // to make sure the javascript works. Adding the edit path as a data attribute
     // allows us to update the edit link with JS.
-    $target_entity_type = $field['settings']['target_type'];
-    $edit_path = (!empty($instance['widget']['settings']['references_dialog_edit'])) ? ' data-edit-path="' . url(str_replace('[entity_id]', 'ENTITY_ID', references_dialog_get_admin_path($target_entity_type, 'edit') )) . '"' : '';
-    $allow_edit = (!empty($instance['widget']['settings']['references_dialog_edit'])) ? ' data-edit="true"' : '';
+    $edit_path = '';
+    $allow_edit = '';
+    if (!empty($instance['widget']['settings']['references_dialog_edit'])) {
+      $target_entity_type = references_dialog_widget_entity_type($dialog_widget, $instance, $field);
+      // references_dialog_get_admin_path() returns FALSE when the entity type
+      // has no edit path. Emitting the attributes anyway left the JavaScript
+      // building edit links that pointed at the front page.
+      $admin_path = $target_entity_type ? references_dialog_get_admin_path($target_entity_type, 'edit') : FALSE;
+      if ($admin_path) {
+        $edit_path = ' data-edit-path="' . url(str_replace('[entity_id]', 'ENTITY_ID', $admin_path)) . '"';
+        $allow_edit = ' data-edit="true"';
+      }
+    }
     $element['#suffix'] = '<div class="dialog-links ' . $element['#id'] . '"' . $allow_edit . $edit_path . '>' . theme('references_dialog_links', array(
       'links' => $dialog_links,
     )) . '</div>';
